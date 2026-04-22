@@ -26,6 +26,11 @@ def inject_retro_css() -> None:
             font-size: 22px;
         }
 
+        .main .block-container {
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
         h1, h2, h3 {
             font-family: 'Press Start 2P', cursive !important;
             color: var(--ink) !important;
@@ -43,27 +48,23 @@ def inject_retro_css() -> None:
             font-size: 24px !important;
         }
 
-        div[data-testid="stVerticalBlockBorderWrapper"] {
+        div[data-testid="stVerticalBlockBorderWrapper"],
+        div[class*="st-key-dialog_"] {
             border: 3px solid var(--line);
             border-radius: 6px;
             background: linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
             box-shadow: 8px 8px 0 var(--peach-deep);
-            margin-bottom: 26px;
+            margin: 0 0 34px;
             padding: 18px;
             position: relative;
         }
 
-        div[data-testid="stVerticalBlockBorderWrapper"]::after {
-            content: "";
-            position: absolute;
-            left: 28px;
-            bottom: -15px;
-            width: 22px;
-            height: 22px;
-            background: var(--peach);
-            border-right: 3px solid var(--line);
-            border-bottom: 3px solid var(--line);
-            transform: rotate(45deg);
+        div[class*="st-key-dialog_header"] {
+            padding: 28px 24px 22px;
+        }
+
+        div[class*="st-key-dialog_header"] h1 {
+            margin-top: 0;
         }
 
         div[data-testid="stDataFrame"] {
@@ -77,7 +78,86 @@ def inject_retro_css() -> None:
             background-color: #ffffff;
             color: var(--ink);
             border: 2px solid var(--line);
+            border-radius: 4px;
+            box-shadow: 4px 4px 0 var(--cyan);
             font-family: 'VT323', monospace;
+        }
+
+        div[data-testid="stSelectbox"] label {
+            color: var(--muted);
+            font-family: 'Press Start 2P', cursive !important;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+        }
+
+        div[class*="st-key-dialog_stage_stats"] [data-testid="column"] {
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.42);
+            box-shadow: 4px 4px 0 var(--cyan);
+            padding: 10px 12px;
+        }
+
+        div[class*="st-key-track_archive_panel"],
+        div[class*="st-key-circuit_map_panel"] {
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.36);
+            box-shadow: 5px 5px 0 var(--cyan);
+            padding: 14px;
+        }
+
+        div[class*="st-key-circuit_map_panel"] [data-testid="stImage"],
+        div[class*="st-key-circuit_map_panel"] [data-testid="stPyplot"] {
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: var(--peach-light);
+            padding: 8px;
+        }
+
+        div[class*="st-key-dialog_track_details"] [data-testid="column"]:first-of-type {
+            padding-right: 22px;
+        }
+
+        div[class*="st-key-dialog_track_details"] [data-testid="column"]:last-of-type {
+            border-left: 3px dashed var(--line);
+            padding-left: 22px;
+        }
+
+        div[class*="st-key-track_analysis_list"] {
+            border-top: 3px dashed var(--line);
+            margin-top: 22px;
+            padding-top: 18px;
+        }
+
+        div[class*="st-key-track_analysis_list"] ul,
+        div[class*="st-key-circuit_winners_list"] ul {
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: var(--peach-light);
+            box-shadow: 4px 4px 0 var(--pink);
+            list-style-position: inside;
+            margin: 12px 0 0;
+            padding: 12px 16px;
+        }
+
+        div[class*="st-key-track_analysis_list"] li,
+        div[class*="st-key-circuit_winners_list"] li {
+            border-bottom: 1px dashed rgba(23, 23, 23, 0.45);
+            font-size: 22px !important;
+            line-height: 1.28;
+            padding: 8px 0;
+        }
+
+        div[class*="st-key-track_analysis_list"] li:last-child,
+        div[class*="st-key-circuit_winners_list"] li:last-child {
+            border-bottom: 0;
+        }
+
+        div[class*="st-key-circuit_winners_list"] {
+            border-top: 3px dashed var(--line);
+            margin-top: 18px;
+            padding-top: 14px;
         }
 
         .session-kicker {
@@ -94,19 +174,6 @@ def inject_retro_css() -> None:
             min-height: 164px;
             padding: 16px;
             position: relative;
-        }
-
-        .practice-card::after {
-            content: "";
-            position: absolute;
-            left: 20px;
-            bottom: -12px;
-            width: 16px;
-            height: 16px;
-            background: var(--peach);
-            border-right: 3px solid var(--line);
-            border-bottom: 3px solid var(--line);
-            transform: rotate(45deg);
         }
 
         .practice-title {
@@ -131,6 +198,13 @@ def inject_retro_css() -> None:
 
         header {
             background: transparent !important;
+        }
+
+        @media (max-width: 1100px) {
+            div[class*="st-key-dialog_track_details"] [data-testid="column"]:last-of-type {
+                border-left: 0;
+                padding-left: 0;
+            }
         }
         </style>
         """,

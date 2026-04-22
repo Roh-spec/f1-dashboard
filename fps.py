@@ -1,6 +1,6 @@
 import streamlit as st
 
-from sessions import SESSION_LABELS, format_timing_value, load_session_data
+from sessions import SESSION_LABELS, best_driver_name, format_timing_value, load_session_data
 
 
 def build_fastest_lap_table(laps, results):
@@ -20,7 +20,7 @@ def build_fastest_lap_table(laps, results):
     if results is not None and not results.empty:
         for _, row in results.iterrows():
             code = row.get("Abbreviation") or row.get("Driver")
-            name = row.get("BroadcastName") or row.get("FullName") or code
+            name = best_driver_name(row)
             if code:
                 driver_names[str(code)] = name
 
@@ -44,13 +44,23 @@ def render_fp_card(session_name, results, laps):
     table = build_fastest_lap_table(laps, results)
 
     if table is None or table.empty:
+        driver_count = 0 if results is None or results.empty else len(results)
+        detail = (
+            f"{driver_count} drivers loaded"
+            if driver_count
+            else "Session archive unavailable"
+        )
         st.markdown(
             f"""
             <div class="practice-card">
                 <p class="practice-title">{label}</p>
                 <p class="practice-stat">
-                    <span class="practice-label">Status</span>
-                    Data unavailable
+                    <span class="practice-label">Timing</span>
+                    Unsupported archive
+                </p>
+                <p class="practice-stat">
+                    <span class="practice-label">Entry List</span>
+                    {detail}
                 </p>
             </div>
             """,
@@ -85,7 +95,7 @@ def render_fp_sessions(year, race_name, practice_sessions):
     if not practice_sessions:
         return
 
-    with st.container(border=True):
+    with st.container(border=True, key="dialog_practice_sessions"):
         st.markdown("<h2>Practice Sessions</h2>", unsafe_allow_html=True)
         st.markdown(
             "<p class='session-kicker'>FP1, FP2, and FP3 fastest-lap readouts.</p>",

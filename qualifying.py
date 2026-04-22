@@ -1,7 +1,7 @@
 import streamlit as st
 
 from fps import build_fastest_lap_table
-from sessions import SESSION_LABELS, format_columns, load_session_data
+from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 
 
 def build_qualifying_table(results):
@@ -11,6 +11,7 @@ def build_qualifying_table(results):
     columns = ["Position", "BroadcastName", "TeamName", "Q1", "Q2", "Q3"]
     available = [column for column in columns if column in results]
     table = results[available].copy()
+    table["DRIVER_NAME"] = results.apply(best_driver_name, axis=1)
     table = table.rename(
         columns={
             "Position": "POS",
@@ -18,6 +19,12 @@ def build_qualifying_table(results):
             "TeamName": "TEAM",
         }
     )
+    driver_text = table["DRIVER"].astype(str).str.strip()
+    table["DRIVER"] = table["DRIVER"].where(
+        (driver_text != "") & (driver_text.str.lower() != "nan"),
+        table["DRIVER_NAME"],
+    )
+    table = table.drop(columns=["DRIVER_NAME"])
     return format_columns(table, ["Q1", "Q2", "Q3"])
 
 
@@ -27,7 +34,7 @@ def render_qualifying_session(year, race_name, session_name):
     with st.spinner(f"LOADING {label.upper()} DATA..."):
         results, laps = load_session_data(year, race_name, session_name)
 
-    with st.container(border=True):
+    with st.container(border=True, key=f"dialog_{session_name.lower().replace(' ', '_')}"):
         st.markdown(f"<h2>{label} Results</h2>", unsafe_allow_html=True)
         st.markdown(
             f"<p class='session-kicker'>Session loaded from the {session_name} archive.</p>",

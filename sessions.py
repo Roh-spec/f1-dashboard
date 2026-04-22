@@ -27,11 +27,15 @@ SESSION_LABELS = {
     "Race": "Race",
 }
 
+_CACHE_READY = False
+
 
 def setup_fastf1_cache(cache_dir: str = "f1_cache") -> None:
+    global _CACHE_READY
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
     fastf1.Cache.enable_cache(cache_dir)
+    _CACHE_READY = True
 
 
 @st.cache_data
@@ -41,6 +45,9 @@ def get_schedule(year):
 
 @st.cache_data
 def load_session_data(year, race_name, session_name):
+    if not _CACHE_READY:
+        setup_fastf1_cache()
+
     session_code = SESSION_CODES.get(session_name, session_name)
     session_identifiers = [session_code]
 
@@ -55,9 +62,24 @@ def load_session_data(year, race_name, session_name):
         try:
             session = fastf1.get_session(year, race_name, session_identifier)
             session.load(laps=True, telemetry=False, weather=False, messages=False)
-            return session.results, session.laps
         except Exception:
             continue
+
+        results = None
+        laps = None
+
+        try:
+            results = session.results
+        except Exception:
+            results = None
+
+        try:
+            laps = session.laps
+        except Exception:
+            laps = None
+
+        if results is not None or laps is not None:
+            return results, laps
 
     return None, None
 
@@ -104,3 +126,11 @@ def format_columns(dataframe, columns):
         if column in dataframe:
             dataframe[column] = dataframe[column].map(format_timing_value)
     return dataframe
+
+
+def best_driver_name(row):
+    for column in ("BroadcastName", "FullName", "Abbreviation", "Driver"):
+        value = row.get(column)
+        if pd.notna(value) and str(value).strip() and str(value).lower() != "nan":
+            return str(value).strip()
+    return "Unknown"
