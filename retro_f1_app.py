@@ -16,13 +16,13 @@ setup_fastf1_cache()
 
 
 def _format_summary_card(label: str, value: str, note: str) -> str:
-    return f"""
-    <div class="summary-card">
-        <div class="summary-label">{label}</div>
-        <div class="summary-value">{value}</div>
-        <p class="summary-note">{note}</p>
-    </div>
-    """
+    return (
+        f"<div class='summary-card'>"
+        f"<div class='summary-label'>{label}</div>"
+        f"<div class='summary-value'>{value}</div>"
+        f"<p class='summary-note'>{note}</p>"
+        f"</div>"
+    )
 
 
 def render_header() -> None:
@@ -30,8 +30,7 @@ def render_header() -> None:
         st.markdown(
             """
             <div class="hero">
-                <p class="eyebrow">FASTF1 ARCHIVE DASHBOARD</p>
-                <p class="hero-title">PERSONAL F1-DASHBOARD</p>
+                <h1 class="hero-title">PERSONAL F1-DASHBOARD</h1>
                 <p class="hero-subtitle">
                     A CRT-style race control board for archived Formula 1 data, with track history,
                     lap timing, qualifying results, and race summaries in one place.
@@ -60,14 +59,12 @@ def render_event_snapshot(event, event_sessions) -> None:
             unsafe_allow_html=True,
         )
         st.markdown(
-            f"""
-            <div class="summary-strip">
-                {_format_summary_card("Season", str(event['EventDate'].year), f"Round {event['RoundNumber']}")}
-                {_format_summary_card("Venue", event['EventName'], f"{event['Location']}, {event['Country']}")}
-                {_format_summary_card("Date", str(event['EventDate'].date()), f"{session_count} archived sessions")}
-                {_format_summary_card("Format", str(event.get('EventFormat', 'race')).title(), f"{len(practice_sessions)} practice and {len(result_sessions)} result sessions")}
-            </div>
-            """,
+            f"<div class='summary-strip'>\n"
+            f"{_format_summary_card('Season', str(event['EventDate'].year), f'Round {event['RoundNumber']}')}\n"
+            f"{_format_summary_card('Venue', event['EventName'], f'{event['Location']}, {event['Country']}')}\n"
+            f"{_format_summary_card('Date', str(event['EventDate'].date()), f'{session_count} archived sessions')}\n"
+            f"{_format_summary_card('Format', str(event.get('EventFormat', 'race')).title(), f'{len(practice_sessions)} practice and {len(result_sessions)} result sessions')}\n"
+            f"</div>",
             unsafe_allow_html=True,
         )
 
@@ -133,14 +130,12 @@ def render_stage_stats(event, event_sessions) -> None:
         st.markdown("<p class='section-kicker'>Grid Notes</p>", unsafe_allow_html=True)
         st.markdown("<h2>Stage Stats</h2>", unsafe_allow_html=True)
         st.markdown(
-            f"""
-            <div class="summary-strip">
-                {_format_summary_card("Round", str(event['RoundNumber']), f"Season {event['EventDate'].year}")}
-                {_format_summary_card("Circuit", event['EventName'], event['Location'])}
-                {_format_summary_card("Country", event['Country'], f"{len(practice_sessions)} practice sessions")}
-                {_format_summary_card("Sessions", str(len(event_sessions)), f"{len(result_sessions)} result sessions")}
-            </div>
-            """,
+            f"<div class='summary-strip'>\n"
+            f"{_format_summary_card('Round', str(event['RoundNumber']), f'Season {event['EventDate'].year}')}\n"
+            f"{_format_summary_card('Circuit', event['EventName'], event['Location'])}\n"
+            f"{_format_summary_card('Country', event['Country'], f'{len(practice_sessions)} practice sessions')}\n"
+            f"{_format_summary_card('Sessions', str(len(event_sessions)), f'{len(result_sessions)} result sessions')}\n"
+            f"</div>",
             unsafe_allow_html=True,
         )
 

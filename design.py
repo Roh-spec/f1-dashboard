@@ -10,21 +10,20 @@ def inject_retro_css() -> None:
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
         :root {
-            --paper: #ffffff;
-            --ink: #171717;
-            --muted: #6b4b3b;
-            --line: #171717;
-            --pink: #f06a8a;
-            --cyan: #37b4c8;
-            --peach: #ffd8c2;
-            --peach-light: #fff0e7;
-            --peach-deep: #f4a77d;
+            --paper: #fbf7ee;
+            --paper-deep: #e5dccb;
+            --ink: #211d18;
+            --muted: #6f675b;
+            --line: #211d18;
+            --red: #9d2b22;
+            --red-glow: rgba(157, 43, 34, 0.16);
+            --black-glow: rgba(33, 29, 24, 0.16);
         }
 
         .stApp {
             background:
-                radial-gradient(circle at 12% 14%, rgba(240, 106, 138, 0.08), transparent 18%),
-                radial-gradient(circle at 84% 10%, rgba(55, 180, 200, 0.08), transparent 20%),
+                radial-gradient(circle at 12% 14%, rgba(157, 43, 34, 0.08), transparent 18%),
+                radial-gradient(circle at 84% 10%, rgba(33, 29, 24, 0.08), transparent 20%),
                 linear-gradient(rgba(23, 23, 23, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(23, 23, 23, 0.03) 1px, transparent 1px),
                 linear-gradient(180deg, #fffaf6 0%, #f6e6d8 100%);
@@ -59,7 +58,7 @@ def inject_retro_css() -> None:
         h1, h2, h3 {
             font-family: 'Press Start 2P', cursive !important;
             color: var(--ink) !important;
-            text-shadow: 3px 3px 0 var(--cyan);
+            text-shadow: 3px 3px 0 var(--red-glow);
             text-transform: uppercase;
             margin-bottom: 1rem;
         }
@@ -94,8 +93,8 @@ def inject_retro_css() -> None:
         .hero {
             border: 3px solid var(--line);
             border-radius: 6px;
-            background: linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
-            box-shadow: 8px 8px 0 var(--peach-deep);
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            box-shadow: 8px 8px 0 var(--line);
             padding: 24px 24px 22px;
             margin-bottom: 22px;
             position: relative;
@@ -107,7 +106,7 @@ def inject_retro_css() -> None:
             display: block;
             height: 6px;
             margin-top: 18px;
-            background: linear-gradient(90deg, var(--pink), var(--cyan));
+            background: linear-gradient(90deg, var(--red), var(--ink));
         }
 
         .eyebrow {
@@ -125,7 +124,7 @@ def inject_retro_css() -> None:
             line-height: 0.95;
             letter-spacing: 0.02em;
             margin: 0;
-            text-shadow: 3px 3px 0 var(--cyan);
+            text-shadow: 3px 3px 0 var(--red-glow);
         }
 
         .hero-subtitle {
@@ -145,7 +144,7 @@ def inject_retro_css() -> None:
             border: 2px solid var(--line);
             border-radius: 4px;
             background: #ffffff;
-            box-shadow: 4px 4px 0 var(--cyan);
+            box-shadow: 4px 4px 0 var(--red);
             color: var(--ink);
             font-size: 0.78rem;
             font-weight: 700;
@@ -166,7 +165,7 @@ def inject_retro_css() -> None:
         .section-ribbon {
             border-top: 2px solid var(--line);
             border-bottom: 2px solid var(--line);
-            background: linear-gradient(90deg, rgba(240, 106, 138, 0.16), rgba(55, 180, 200, 0.16));
+            background: linear-gradient(90deg, var(--red-glow), var(--black-glow));
             color: var(--ink);
             margin: 8px 0 20px;
             padding: 10px 14px;
@@ -202,8 +201,8 @@ def inject_retro_css() -> None:
         div[class*="st-key-circuit_map_panel"] {
             border: 3px solid var(--line);
             border-radius: 6px;
-            background: linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
-            box-shadow: 6px 6px 0 var(--cyan);
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            box-shadow: 6px 6px 0 var(--line);
         }
 
         .summary-card {
@@ -224,7 +223,7 @@ def inject_retro_css() -> None:
             font-size: 1.05rem;
             line-height: 1.35;
             margin: 14px 0 8px;
-            text-shadow: 2px 2px 0 var(--pink);
+            text-shadow: 2px 2px 0 var(--red-glow);
         }
 
         .summary-note {
@@ -237,8 +236,8 @@ def inject_retro_css() -> None:
         .panel-shell {
             border: 3px solid var(--line);
             border-radius: 6px;
-            background: linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
-            box-shadow: 6px 6px 0 var(--cyan);
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            box-shadow: 6px 6px 0 var(--line);
             padding: 16px;
         }
 
@@ -252,8 +251,8 @@ def inject_retro_css() -> None:
         div[class*="st-key-dialog_"] {
             border: 3px solid var(--line);
             border-radius: 6px;
-            background: linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
-            box-shadow: 8px 8px 0 var(--peach-deep);
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            box-shadow: 8px 8px 0 var(--line);
             margin: 0 0 26px;
             padding: 18px;
             position: relative;
@@ -267,7 +266,7 @@ def inject_retro_css() -> None:
             inset: 0 auto auto 0;
             width: 100%;
             height: 6px;
-            background: linear-gradient(90deg, var(--pink), var(--cyan));
+            background: linear-gradient(90deg, var(--red), var(--ink));
         }
 
         div[class*="st-key-dialog_header"] {
@@ -282,7 +281,7 @@ def inject_retro_css() -> None:
             border: 2px solid var(--line);
             border-radius: 4px;
             background: rgba(255, 255, 255, 0.42);
-            box-shadow: 4px 4px 0 var(--cyan);
+            box-shadow: 4px 4px 0 var(--line);
             padding: 10px 12px;
         }
 
@@ -295,7 +294,7 @@ def inject_retro_css() -> None:
         div[class*="st-key-circuit_map_panel"] [data-testid="stPyplot"] {
             border: 2px solid var(--line);
             border-radius: 4px;
-            background: var(--peach-light);
+            background: var(--paper);
             padding: 8px;
         }
 
@@ -318,9 +317,9 @@ def inject_retro_css() -> None:
         div[class*="st-key-circuit_winners_list"] ul {
             border: 2px solid var(--line);
             border-radius: 4px;
-            background: var(--peach-light);
-            box-shadow: 4px 4px 0 var(--pink);
-            list-style-position: inside;
+            background: var(--paper);
+            box-shadow: 4px 4px 0 var(--line);
+            list-style-type: none;
             margin: 12px 0 0;
             padding: 12px 16px;
         }
@@ -360,7 +359,7 @@ def inject_retro_css() -> None:
             font-family: 'Press Start 2P', cursive;
             font-size: 1rem;
             margin: 0 0 12px;
-            text-shadow: 2px 2px 0 var(--cyan);
+            text-shadow: 2px 2px 0 var(--red-glow);
         }
 
         .practice-stat {
@@ -422,7 +421,7 @@ def inject_retro_css() -> None:
             color: var(--ink);
             border: 2px solid var(--line);
             border-radius: 4px;
-            box-shadow: 4px 4px 0 var(--cyan);
+            box-shadow: 4px 4px 0 var(--line);
             font-family: 'VT323', monospace;
         }
 

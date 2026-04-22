@@ -184,8 +184,13 @@ def render_track_analysis(event) -> None:
 def render_circuit_winners(event) -> None:
     winners = get_track_facts(event)["winners"]
     with st.container(key="circuit_winners_list"):
-        st.markdown("<h3>Winners</h3>", unsafe_allow_html=True)
+        st.markdown("<h3>Most wins</h3>", unsafe_allow_html=True)
         for winner in _split_winners(winners):
+            if winner != "Archive pending" and winner[-1].isdigit():
+                parts = winner.rsplit(" ", 1)
+                count = parts[1]
+                word = "win" if count == "1" else "wins"
+                winner = f"{parts[0]}: {count} {word}"
             st.markdown(f"- {winner}")
 
 
