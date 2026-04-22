@@ -1,0 +1,60 @@
+CURRENT_DRIVERS = {
+    "VER": "Max Verstappen",
+    "NOR": "Lando Norris",
+    "LEC": "Charles Leclerc",
+    "HAM": "Lewis Hamilton",
+    "RUS": "George Russell",
+    "PIA": "Oscar Piastri",
+    "SAI": "Carlos Sainz",
+    "ALO": "Fernando Alonso",
+    "PER": "Sergio Perez",
+    "TSU": "Yuki Tsunoda",
+}
+
+EVENT_PRESETS = [
+    "Bahrain Grand Prix",
+    "Saudi Arabian Grand Prix",
+    "Australian Grand Prix",
+    "Japanese Grand Prix",
+    "Chinese Grand Prix",
+    "Miami Grand Prix",
+    "Emilia Romagna Grand Prix",
+    "Monaco Grand Prix",
+    "Canadian Grand Prix",
+    "Spanish Grand Prix",
+    "Austrian Grand Prix",
+    "British Grand Prix",
+    "Hungarian Grand Prix",
+    "Belgian Grand Prix",
+    "Dutch Grand Prix",
+    "Italian Grand Prix",
+    "Singapore Grand Prix",
+    "United States Grand Prix",
+    "Mexico City Grand Prix",
+    "Sao Paulo Grand Prix",
+    "Las Vegas Grand Prix",
+    "Qatar Grand Prix",
+    "Abu Dhabi Grand Prix",
+]
+
+SESSION_TYPES = {
+    "Race": "R",
+    "Qualifying": "Q",
+    "Sprint": "S",
+    "Practice 1": "FP1",
+    "Practice 2": "FP2",
+    "Practice 3": "FP3",
+}
+
+DEMO_DRIVER_BASE_PACE = {
+    "VER": 88.7,
+    "NOR": 89.0,
+    "LEC": 89.2,
+    "HAM": 89.4,
+    "RUS": 89.5,
+    "PIA": 89.1,
+    "SAI": 89.6,
+    "ALO": 90.0,
+    "PER": 89.8,
+    "TSU": 90.4,
+}
