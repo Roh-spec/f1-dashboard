@@ -1,6 +1,7 @@
 import os
 
 import fastf1
+from fastf1.ergast import Ergast
 import pandas as pd
 import streamlit as st
 
@@ -61,7 +62,7 @@ def load_session_data(year, race_name, session_name):
     for session_identifier in session_identifiers:
         try:
             session = fastf1.get_session(year, race_name, session_identifier)
-            session.load(laps=True, telemetry=False, weather=False, messages=False)
+            session.load(laps=True, telemetry=True, weather=False, messages=False)
         except Exception:
             continue
 
@@ -79,9 +80,29 @@ def load_session_data(year, race_name, session_name):
             laps = None
 
         if results is not None or laps is not None:
-            return results, laps
+            return session, results, laps
 
-    return None, None
+    return None, None, None
+
+
+@st.cache_data
+def get_driver_standings(year, round_num):
+    try:
+        ergast = Ergast()
+        standings = ergast.get_driver_standings(season=year, round=round_num).content[0]
+        return standings
+    except Exception:
+        return pd.DataFrame()
+
+
+@st.cache_data
+def get_constructor_standings(year, round_num):
+    try:
+        ergast = Ergast()
+        standings = ergast.get_constructor_standings(season=year, round=round_num).content[0]
+        return standings
+    except Exception:
+        return pd.DataFrame()
 
 
 def get_event_sessions(event):

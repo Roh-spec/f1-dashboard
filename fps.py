@@ -106,5 +106,5 @@ def render_fp_sessions(year, race_name, practice_sessions):
         for column, session_name in zip(columns, practice_sessions):
             with column:
                 with st.spinner(f"LOADING {SESSION_LABELS.get(session_name, session_name).upper()} DATA..."):
-                    results, laps = load_session_data(year, race_name, session_name)
+                    session, results, laps = load_session_data(year, race_name, session_name)
                 render_fp_card(session_name, results, laps)

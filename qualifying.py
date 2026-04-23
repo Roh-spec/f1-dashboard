@@ -1,5 +1,6 @@
 import streamlit as st
 
+from charts import plot_lap_times, plot_top_2_telemetry
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 
@@ -32,7 +33,7 @@ def render_qualifying_session(year, race_name, session_name):
     label = SESSION_LABELS.get(session_name, session_name)
 
     with st.spinner(f"LOADING {label.upper()} DATA..."):
-        results, laps = load_session_data(year, race_name, session_name)
+        session, results, laps = load_session_data(year, race_name, session_name)
 
     with st.container(border=True, key=f"dialog_{session_name.lower().replace(' ', '_')}"):
         st.markdown(f"<h2>{label} Results</h2>", unsafe_allow_html=True)
@@ -52,3 +53,7 @@ def render_qualifying_session(year, race_name, session_name):
         st.dataframe(table.set_index("POS"), use_container_width=True)
         if "DRIVER" in table:
             st.info(f"Fastest qualifier: {table.iloc[0]['DRIVER']}")
+
+        st.markdown("<h3>Qualifying Telemetry & Lap Times</h3>", unsafe_allow_html=True)
+        plot_top_2_telemetry(session)
+        plot_lap_times(session)

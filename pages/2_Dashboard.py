@@ -5,7 +5,7 @@ from circuit_map import render_circuit_map
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
-from sessions import get_event_sessions
+from sessions import get_event_sessions, get_driver_standings, get_constructor_standings
 from track_analysis import render_circuit_winners, render_track_analysis
 
 def _format_summary_card(label: str, value: str, note: str) -> str:
@@ -87,6 +87,42 @@ def render_stage_stats(event, event_sessions) -> None:
             unsafe_allow_html=True,
         )
 
+def render_standings(year, round_num) -> None:
+    st.markdown("<div class='section-ribbon'><span>CHAMPIONSHIP STANDINGS</span><span>WDC & WCC</span></div>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("<h3>World Driver Championship</h3>", unsafe_allow_html=True)
+            wdc = get_driver_standings(year, round_num)
+            if not wdc.empty:
+                wdc_display = wdc[['position', 'givenName', 'familyName', 'points', 'wins']].copy()
+                wdc_display['DRIVER'] = wdc_display['givenName'] + " " + wdc_display['familyName']
+                wdc_display = wdc_display[['position', 'DRIVER', 'points', 'wins']]
+                wdc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
+                st.dataframe(wdc_display.set_index('POS'), use_container_width=True)
+            else:
+                st.warning("WDC Standings unavailable.")
+
+    with col2:
+        with st.container(border=True):
+            st.markdown("<h3>World Constructor Championship</h3>", unsafe_allow_html=True)
+            wcc = get_constructor_standings(year, round_num)
+            if not wcc.empty:
+                # The ergast data for constructors actually returns 'constructorName' based on my earlier check
+                wcc_display = wcc[['position', 'constructorName', 'points', 'wins']].copy() if 'constructorName' in wcc else wcc[['position', 'constructorNames', 'points', 'wins']].copy()
+                if 'constructorNames' in wcc_display:
+                    wcc_display['TEAM'] = wcc_display['constructorNames'].apply(lambda x: x[0] if isinstance(x, list) and len(x) > 0 else x)
+                else:
+                    wcc_display['TEAM'] = wcc_display['constructorName']
+                    
+                wcc_display = wcc_display[['position', 'TEAM', 'points', 'wins']]
+                wcc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
+                st.dataframe(wcc_display.set_index('POS'), use_container_width=True)
+            else:
+                st.warning("WCC Standings unavailable.")
+
 def render_sessions(year, race_name, event) -> None:
     event_sessions = get_event_sessions(event)
     practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
@@ -121,4 +157,5 @@ else:
     render_event_snapshot(event, event_sessions)
     render_track_details(selected_year, selected_race, event)
     render_stage_stats(event, event_sessions)
+    render_standings(selected_year, event['RoundNumber'])
     render_sessions(selected_year, selected_race, event)
