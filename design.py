@@ -451,6 +451,40 @@ def inject_retro_css() -> None:
                 padding: 18px;
             }
         }
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #fbf7ee 0%, #e5dccb 100%);
+            border-right: 2px solid var(--ink);
+        }
+
+        section[data-testid="stSidebar"] * {
+            color: var(--ink);
+        }
+
+        .stButton button {
+            background-color: var(--red) !important;
+            color: #fbf7ee !important;
+            border: 3px solid var(--ink) !important;
+            font-family: 'Press Start 2P', cursive !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0 var(--ink) !important;
+            border-radius: 0 !important;
+            transition: all 0.1s ease-in-out;
+        }
+
+        .stButton button:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--ink) !important;
+            color: #ffffff !important;
+            border-color: var(--ink) !important;
+        }
+        
+        .stButton button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0 0 0 var(--ink) !important;
+            color: #ffffff !important;
+            border-color: var(--ink) !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,

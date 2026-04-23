@@ -2,18 +2,11 @@ import streamlit as st
 import wikipedia
 
 from circuit_map import render_circuit_map
-from design import inject_retro_css
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
-from sessions import get_event_sessions, get_schedule, setup_fastf1_cache
+from sessions import get_event_sessions
 from track_analysis import render_circuit_winners, render_track_analysis
-
-
-st.set_page_config(page_title="F1 RETRO DASH", layout="wide")
-inject_retro_css()
-setup_fastf1_cache()
-
 
 def _format_summary_card(label: str, value: str, note: str) -> str:
     return (
@@ -23,29 +16,6 @@ def _format_summary_card(label: str, value: str, note: str) -> str:
         f"<p class='summary-note'>{note}</p>"
         f"</div>"
     )
-
-
-def render_header() -> None:
-    with st.container(border=True, key="dialog_header"):
-        st.markdown(
-            """
-            <div class="hero">
-                <h1 class="hero-title">PERSONAL F1-DASHBOARD</h1>
-                <p class="hero-subtitle">
-                    A CRT-style race control board for archived Formula 1 data, with track history,
-                    lap timing, qualifying results, and race summaries in one place.
-                </p>
-                <div class="badge-row">
-                    <span class="badge">TIMING ARCHIVE</span>
-                    <span class="badge">TRACK HISTORY</span>
-                    <span class="badge">QUALIFYING</span>
-                    <span class="badge">RACE CONTROL</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
 
 def render_event_snapshot(event, event_sessions) -> None:
     practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
@@ -67,27 +37,6 @@ def render_event_snapshot(event, event_sessions) -> None:
             f"</div>",
             unsafe_allow_html=True,
         )
-
-
-def render_controls():
-    with st.container(border=True, key="dialog_race_select"):
-        st.markdown("<p class='section-kicker'>Select Archive</p>", unsafe_allow_html=True)
-        st.markdown("<h2>Race Select</h2>", unsafe_allow_html=True)
-        st.markdown("<p class='panel-note'>Choose a season and round to load the relevant circuit, session, and results panels.</p>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-
-        with col1:
-            selected_year = st.selectbox("SELECT YEAR:", list(range(2025, 1999, -1)))
-
-        schedule = get_schedule(selected_year)
-        races = schedule[schedule["EventFormat"] != "testing"]
-
-        with col2:
-            selected_race = st.selectbox("SELECT STAGE (RACE):", races["EventName"].tolist())
-
-    event = races[races["EventName"] == selected_race].iloc[0]
-    return selected_year, selected_race, event
-
 
 def render_track_details(year, race_name, event) -> None:
     with st.container(border=True, key="dialog_track_details"):
@@ -121,7 +70,6 @@ def render_track_details(year, race_name, event) -> None:
                 render_circuit_map(year, race_name, event)
                 render_circuit_winners(event)
 
-
 def render_stage_stats(event, event_sessions) -> None:
     with st.container(border=True, key="dialog_stage_stats"):
         practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
@@ -138,7 +86,6 @@ def render_stage_stats(event, event_sessions) -> None:
             f"</div>",
             unsafe_allow_html=True,
         )
-
 
 def render_sessions(year, race_name, event) -> None:
     event_sessions = get_event_sessions(event)
@@ -157,15 +104,21 @@ def render_sessions(year, race_name, event) -> None:
         elif session_name in {"Race", "Sprint"}:
             render_race_session(year, race_name, session_name)
 
-
-def main() -> None:
-    render_header()
-    selected_year, selected_race, event = render_controls()
+if "selected_event" not in st.session_state:
+    st.warning("No archive selected. Please select a race from the Race Select page.")
+    if st.button("Go to Race Select"):
+        st.switch_page("pages/1_Race_Select.py")
+else:
+    event = st.session_state.selected_event
+    selected_year = st.session_state.selected_year
+    selected_race = st.session_state.selected_race
+    
     event_sessions = get_event_sessions(event)
+    
+    if st.button("← RETURN TO RACE SELECT"):
+        st.switch_page("pages/1_Race_Select.py")
+        
     render_event_snapshot(event, event_sessions)
     render_track_details(selected_year, selected_race, event)
     render_stage_stats(event, event_sessions)
     render_sessions(selected_year, selected_race, event)
-
-
-main()
