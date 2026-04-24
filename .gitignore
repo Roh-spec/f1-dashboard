@@ -1,3 +1,17 @@
-__pycache__/
-f1_cache/
+# FastF1 cache
 .fastf1_cache/
+f1_cache/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# SQLite database files
+*.sqlite
+
+# Matplotlib cache (you have this inside f1_cache)
+matplotlib/
+
+# Optional: system files
+.DS_Store
+Thumbs.db
