@@ -104,3 +104,39 @@ def plot_lap_times(session):
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb', fontsize='small')
     fig.tight_layout()
     st.pyplot(fig)
+
+def plot_driver_positions(session):
+    if session is None or session.laps is None or session.laps.empty:
+        return
+        
+    try:
+        drivers = session.results['Abbreviation'].tolist()
+    except Exception:
+        drivers = session.laps['Driver'].unique().tolist()
+        
+    fig, ax = plt.subplots(figsize=(10, 8))
+    _set_retro_style(fig, [ax])
+
+    for drv in drivers:
+        drv_laps = session.laps.pick_driver(drv)
+        # Drop laps without position data
+        drv_laps = drv_laps.dropna(subset=['Position'])
+        if not drv_laps.empty:
+            try:
+                color = fastf1.plotting.get_driver_color(drv, session)
+            except Exception:
+                color = '#e5dccb' # fallback color
+            ax.plot(drv_laps['LapNumber'], drv_laps['Position'], color=color, label=drv, alpha=0.8, linewidth=2.0)
+
+    ax.set_ylim(20.5, 0.5)
+    ax.set_yticks(range(1, 21))
+    
+    ax.set_xlabel("Lap Number", color='#e5dccb')
+    ax.set_ylabel("Position", color='#e5dccb')
+    
+    event_name = session.event.EventName if session.event is not None else "Session"
+    fig.suptitle(f"{event_name} - {session.name} Track Positions", color='#fbf7ee', family='monospace')
+    
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb', fontsize='small')
+    fig.tight_layout()
+    st.pyplot(fig)

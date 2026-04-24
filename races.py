@@ -1,6 +1,6 @@
 import streamlit as st
 
-from charts import plot_lap_times, plot_top_2_telemetry
+from charts import plot_driver_positions, plot_lap_times, plot_top_2_telemetry
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 
@@ -71,3 +71,6 @@ def render_race_session(year, race_name, session_name):
         st.markdown("<h3>Race Telemetry & Lap Times</h3>", unsafe_allow_html=True)
         plot_top_2_telemetry(session)
         plot_lap_times(session)
+        
+        st.markdown("<h3>Track Positions</h3>", unsafe_allow_html=True)
+        plot_driver_positions(session)

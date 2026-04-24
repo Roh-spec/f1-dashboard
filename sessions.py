@@ -62,7 +62,7 @@ def load_session_data(year, race_name, session_name):
     for session_identifier in session_identifiers:
         try:
             session = fastf1.get_session(year, race_name, session_identifier)
-            session.load(laps=True, telemetry=True, weather=False, messages=False)
+            session.load(laps=True, telemetry=True, weather=False, messages=True)
         except Exception:
             continue
 

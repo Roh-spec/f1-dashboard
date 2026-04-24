@@ -139,6 +139,22 @@ def find_circuit_image(event) -> Path | None:
         event.get("OfficialEventName"),
     ]
 
+    try:
+        year = event["EventDate"].year
+    except Exception:
+        year = 2024
+
+    is_qatar = any(
+        candidate and any(term in str(candidate).lower() for term in ("qatar", "lusail", "losail"))
+        for candidate in candidates
+    )
+
+    if is_qatar:
+        target = "losail 2023" if year >= 2023 else "losail until 2023"
+        if target in lookup:
+            return lookup[target]
+
+
     for candidate in candidates:
         candidate_key = _normalize(candidate)
         if not candidate_key:

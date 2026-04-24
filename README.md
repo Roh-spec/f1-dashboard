@@ -273,4 +273,5 @@ Not every FastF1 session has every field populated for every lap. The app keeps 
 - Add fastest lap telemetry traces with throttle/brake/speed.
 - Add lap filtering by compound or stint.
 - Add team color styling.
+- Faster Loading time.
 - Add circuit map support from FastF1.

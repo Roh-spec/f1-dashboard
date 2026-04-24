@@ -161,6 +161,48 @@ TRACK_FACTS = {
         "length": "5.281 km",
         "laps": "58",
     },
+    "qatar grand prix": {
+        "first_f1": "2021",
+        "races": "Qatar GP host",
+        "winners": "Max Verstappen 1, Lewis Hamilton 1",
+        "length": "5.419 km",
+        "laps": "57",
+    },
+    "jeddah street circuit": {
+        "first_f1": "2021",
+        "races": "Saudi Arabian GP host since 2021",
+        "winners": "Max Verstappen 2, Lewis Hamilton 1, Sergio Perez 1",
+        "length": "6.174 km",
+        "laps": "50",
+    },
+    "autodromo internacional do algarve": {
+        "first_f1": "2020",
+        "races": "Portuguese GP host (2020-2021)",
+        "winners": "Lewis Hamilton 2",
+        "length": "4.653 km",
+        "laps": "66",
+    },
+    "intercity istanbul park circuit": {
+        "first_f1": "2005",
+        "races": "Turkish GP host",
+        "winners": "Felipe Massa 3, Lewis Hamilton 2, Kimi Raikkonen 1",
+        "length": "5.338 km",
+        "laps": "58",
+    },
+    "sochi autodrom": {
+        "first_f1": "2014",
+        "races": "Russian GP host (2014-2021)",
+        "winners": "Lewis Hamilton 5, Valtteri Bottas 2, Nico Rosberg 1",
+        "length": "5.848 km",
+        "laps": "53",
+    },
+    "bahrain international circuit outer track": {
+        "first_f1": "2020",
+        "races": "Sakhir GP host (2020)",
+        "winners": "Sergio Perez 1",
+        "length": "3.543 km",
+        "laps": "87",
+    },
 }
 
 
