@@ -55,4 +55,6 @@ def render_qualifying_session(year, race_name, session_name):
             st.info(f"Fastest qualifier: {table.iloc[0]['DRIVER']}")
 
         st.markdown("<h3>Qualifying Telemetry</h3>", unsafe_allow_html=True)
-        plot_top_2_telemetry(session)
+        col1, _ = st.columns([2, 1])
+        with col1:
+            plot_top_2_telemetry(session)

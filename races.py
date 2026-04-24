@@ -69,8 +69,13 @@ def render_race_session(year, race_name, session_name):
             st.success(f"Winner: {table.iloc[0]['DRIVER']}")
 
         st.markdown("<h3>Race Telemetry & Lap Times</h3>", unsafe_allow_html=True)
-        plot_top_2_telemetry(session)
-        plot_lap_times(session)
+        col1, col2 = st.columns(2)
+        with col1:
+            plot_top_2_telemetry(session)
+        with col2:
+            plot_lap_times(session)
         
         st.markdown("<h3>Track Positions</h3>", unsafe_allow_html=True)
-        plot_driver_positions(session)
+        col1, _ = st.columns([2, 1])
+        with col1:
+            plot_driver_positions(session)
