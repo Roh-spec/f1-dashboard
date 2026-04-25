@@ -2,15 +2,34 @@
 .fastf1_cache/
 f1_cache/
 
+# Local virtual environments
+.venv/
+venv/
+env/
+
 # Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
 
 # SQLite database files
 *.sqlite
 
 # Matplotlib cache (you have this inside f1_cache)
 matplotlib/
+
+# Logs and local runtime output
+*.log
+logs/
+
+# Streamlit local config/state
+.streamlit/secrets.toml
 
 # Optional: system files
 .DS_Store

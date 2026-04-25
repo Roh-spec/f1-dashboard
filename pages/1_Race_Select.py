@@ -72,10 +72,17 @@ def render_news_briefing() -> None:
 render_header()
 selected_year, selected_race, event = render_controls()
 
-if st.button("LOAD ARCHIVE DATA", use_container_width=True):
-    st.session_state.selected_year = selected_year
-    st.session_state.selected_race = selected_race
-    st.session_state.selected_event = event
-    st.switch_page("pages/2_Dashboard.py")
+col_primary, col_secondary = st.columns(2)
+
+with col_primary:
+    if st.button("LOAD ARCHIVE DATA", use_container_width=True):
+        st.session_state.selected_year = selected_year
+        st.session_state.selected_race = selected_race
+        st.session_state.selected_event = event
+        st.switch_page("pages/2_Dashboard.py")
+
+with col_secondary:
+    if st.button("DRIVER COMPARISON & HISTORY", use_container_width=True):
+        st.switch_page("pages/3_Driver_Comparison.py")
 
 render_news_briefing()
