@@ -30,6 +30,12 @@ logs/
 
 # Streamlit local config/state
 .streamlit/secrets.toml
+.streamlit/cache/
+
+# Local data/cache artifacts
+.cache/
+*.tmp
+*.bak
 
 # Optional: system files
 .DS_Store

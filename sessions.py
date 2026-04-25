@@ -62,6 +62,86 @@ STATIC_DRIVER_DIRECTORY = [
     {"driverId": "albon", "givenName": "Alexander", "familyName": "Albon", "nationality": "Thai"},
 ]
 
+TEAM_LEADERS = {
+    "alpine": "Oliver Oakes",
+    "aston_martin": "Andy Cowell",
+    "ferrari": "Frederic Vasseur",
+    "haas": "Ayao Komatsu",
+    "mclaren": "Andrea Stella",
+    "mercedes": "Toto Wolff",
+    "rb": "Laurent Mekies",
+    "red_bull": "Christian Horner",
+    "sauber": "Alessandro Alunni Bravi",
+    "williams": "James Vowles",
+}
+
+TEAM_PREVIOUS_NAMES = {
+    "alpine": ["Renault", "Lotus F1 Team", "Benetton"],
+    "aston_martin": ["Racing Point", "Force India", "Spyker", "Midland", "Jordan"],
+    "ferrari": [],
+    "haas": [],
+    "mclaren": [],
+    "mercedes": ["Brawn GP", "Tyrrell"],
+    "rb": ["AlphaTauri", "Toro Rosso", "Minardi"],
+    "red_bull": ["Jaguar", "Stewart"],
+    "sauber": ["Alfa Romeo", "BMW Sauber"],
+    "williams": [],
+}
+
+TEAM_LINEAGE = {
+    "alpine": {
+        "aliases": ["alpine", "renault", "lotus_f1", "benetton"],
+        "previous_names": ["Benetton", "Lotus F1 Team", "Renault"],
+    },
+    "aston_martin": {
+        "aliases": ["aston_martin", "racing_point", "force_india", "spyker", "midland", "jordan"],
+        "previous_names": ["Force India", "Jordan", "Midland", "Racing Point", "Spyker"],
+    },
+    "ferrari": {
+        "aliases": ["ferrari"],
+        "previous_names": [],
+    },
+    "haas": {
+        "aliases": ["haas"],
+        "previous_names": [],
+    },
+    "mclaren": {
+        "aliases": ["mclaren"],
+        "previous_names": [],
+    },
+    "mercedes": {
+        "aliases": ["mercedes", "brawn", "tyrrell"],
+        "previous_names": ["Brawn GP", "Tyrrell"],
+    },
+    "rb": {
+        "aliases": ["rb", "alphatauri", "toro_rosso", "minardi"],
+        "previous_names": ["AlphaTauri", "Minardi", "Toro Rosso"],
+    },
+    "red_bull": {
+        "aliases": ["red_bull", "jaguar", "stewart"],
+        "previous_names": ["Jaguar", "Stewart"],
+    },
+    "sauber": {
+        "aliases": ["sauber", "bmw_sauber", "alfa", "alfa_romeo"],
+        "previous_names": ["Alfa Romeo", "BMW Sauber"],
+    },
+    "williams": {
+        "aliases": ["williams"],
+        "previous_names": [],
+    },
+}
+
+
+def _resolve_team_lineage(constructor_id):
+    for _, lineage in TEAM_LINEAGE.items():
+        if constructor_id in lineage.get("aliases", []):
+            return lineage
+
+    return {
+        "aliases": [constructor_id],
+        "previous_names": TEAM_PREVIOUS_NAMES.get(constructor_id, []),
+    }
+
 
 def setup_fastf1_cache(cache_dir: str = "f1_cache") -> None:
     global _CACHE_READY
@@ -327,6 +407,306 @@ def get_drivers_for_season(season):
     directory = directory.drop_duplicates(subset=["driverId", "fullName"]).copy()
     directory = directory.sort_values("fullName").reset_index(drop=True)
     return directory
+
+
+@st.cache_data(ttl=86400)
+def get_teams_for_season(season):
+    payload = _fetch_ergast_path(f"{int(season)}/constructors.json?limit=200")
+    constructors = payload.get("MRData", {}).get("ConstructorTable", {}).get("Constructors", [])
+    if not constructors:
+        return pd.DataFrame(columns=["constructorId", "name", "nationality", "url"])
+
+    teams = pd.DataFrame(constructors)
+    for column in ("constructorId", "name", "nationality", "url"):
+        if column not in teams:
+            teams[column] = ""
+
+    teams = teams[["constructorId", "name", "nationality", "url"]].copy()
+    teams = teams[teams["name"].astype(str).str.strip().str.len() > 0]
+    teams = teams.drop_duplicates(subset=["constructorId"]).sort_values("name").reset_index(drop=True)
+    return teams
+
+
+@st.cache_data(ttl=86400)
+def get_constructor_results_history(constructor_id):
+    page_limit = 100
+    offset = 0
+    rows = []
+    seen_races = set()
+
+    while True:
+        payload = _fetch_ergast_path(
+            f"constructors/{constructor_id}/results.json?limit={page_limit}&offset={offset}"
+        )
+        race_page = payload.get("MRData", {}).get("RaceTable", {}).get("Races", [])
+        if not race_page:
+            break
+
+        new_count = 0
+        for race in race_page:
+            race_key = (race.get("season"), race.get("round"), race.get("raceName"))
+            if race_key in seen_races:
+                continue
+            seen_races.add(race_key)
+
+            try:
+                season = int(race.get("season", 0) or 0)
+                round_num = int(race.get("round", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+
+            rows.append(
+                {
+                    "season": season,
+                    "round": round_num,
+                    "raceName": race.get("raceName", "Unknown Race"),
+                    "date": race.get("date", ""),
+                }
+            )
+            new_count += 1
+
+        mr_data = payload.get("MRData", {})
+        try:
+            total = int(mr_data.get("total", len(rows)) or len(rows))
+        except (TypeError, ValueError):
+            total = len(rows)
+
+        offset += len(race_page)
+        if new_count == 0 or offset >= total:
+            break
+
+    if not rows:
+        return pd.DataFrame(columns=["season", "round", "raceName", "date"])
+
+    history = pd.DataFrame(rows)
+    history = history.sort_values(["season", "round"]).reset_index(drop=True)
+    return history
+
+
+@st.cache_data(ttl=86400)
+def get_constructor_season_driver_points(constructor_id, season):
+    payload = _fetch_ergast_path(f"{int(season)}/constructors/{constructor_id}/results.json?limit=100")
+    races = payload.get("MRData", {}).get("RaceTable", {}).get("Races", [])
+    if not races:
+        return pd.DataFrame(columns=["driverId", "driverName", "points", "starts"])
+
+    driver_totals = {}
+    for race in races:
+        for result in race.get("Results", []):
+            driver = result.get("Driver", {})
+            driver_id = driver.get("driverId")
+            if not driver_id:
+                continue
+
+            full_name = f"{driver.get('givenName', '')} {driver.get('familyName', '')}".strip() or driver_id
+            try:
+                points = float(result.get("points", 0.0))
+            except (TypeError, ValueError):
+                points = 0.0
+
+            if driver_id not in driver_totals:
+                driver_totals[driver_id] = {"driverName": full_name, "points": 0.0, "starts": 0}
+
+            driver_totals[driver_id]["points"] += points
+            driver_totals[driver_id]["starts"] += 1
+
+    if not driver_totals:
+        return pd.DataFrame(columns=["driverId", "driverName", "points", "starts"])
+
+    rows = []
+    for driver_id, values in driver_totals.items():
+        rows.append(
+            {
+                "driverId": driver_id,
+                "driverName": values["driverName"],
+                "points": float(values["points"]),
+                "starts": int(values["starts"]),
+            }
+        )
+
+    drivers_df = pd.DataFrame(rows)
+    drivers_df = drivers_df.sort_values(["points", "driverName"], ascending=[False, True]).reset_index(drop=True)
+    return drivers_df
+
+
+@st.cache_data(ttl=86400)
+def get_all_wcc_titles():
+    payload = _fetch_ergast_path("constructorStandings/1.json?limit=1000")
+    standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
+    if not standings_lists:
+        return pd.DataFrame(columns=["season", "constructorId", "constructorName", "points"])
+
+    rows = []
+    for season_row in standings_lists:
+        season = int(season_row.get("season", 0) or 0)
+        standings = season_row.get("ConstructorStandings", [])
+        if not standings:
+            continue
+        winner = standings[0]
+        constructor = winner.get("Constructor", {})
+        try:
+            points = float(winner.get("points", 0.0))
+        except (TypeError, ValueError):
+            points = 0.0
+
+        rows.append(
+            {
+                "season": season,
+                "constructorId": constructor.get("constructorId", ""),
+                "constructorName": constructor.get("name", ""),
+                "points": points,
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(columns=["season", "constructorId", "constructorName", "points"])
+
+    titles = pd.DataFrame(rows)
+    titles = titles.sort_values("season").reset_index(drop=True)
+    return titles
+
+
+@st.cache_data(ttl=86400)
+def get_all_wdc_titles():
+    payload = _fetch_ergast_path("driverStandings/1.json?limit=1000")
+    standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
+    if not standings_lists:
+        return pd.DataFrame(columns=["season", "constructorId", "driverName", "points"])
+
+    rows = []
+    for season_row in standings_lists:
+        season = int(season_row.get("season", 0) or 0)
+        standings = season_row.get("DriverStandings", [])
+        if not standings:
+            continue
+
+        winner = standings[0]
+        driver = winner.get("Driver", {})
+        constructors = winner.get("Constructors", [])
+        constructor = constructors[0] if constructors else {}
+        driver_name = f"{driver.get('givenName', '')} {driver.get('familyName', '')}".strip()
+
+        try:
+            points = float(winner.get("points", 0.0))
+        except (TypeError, ValueError):
+            points = 0.0
+
+        rows.append(
+            {
+                "season": season,
+                "constructorId": constructor.get("constructorId", ""),
+                "driverName": driver_name or "Unknown Driver",
+                "points": points,
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(columns=["season", "constructorId", "driverName", "points"])
+
+    titles = pd.DataFrame(rows)
+    titles = titles.sort_values("season").reset_index(drop=True)
+    return titles
+
+
+@st.cache_data(ttl=604800)
+def get_team_history_blurb(team_name):
+    try:
+        return wikipedia.summary(f"{team_name} Formula One", sentences=3, auto_suggest=False)
+    except Exception:
+        try:
+            return wikipedia.summary(team_name, sentences=3, auto_suggest=False)
+        except Exception:
+            return "History unavailable right now."
+
+
+def get_team_wiki_profile(constructor_id, constructor_name, selected_season):
+    lineage = _resolve_team_lineage(constructor_id)
+    aliases = lineage.get("aliases", [constructor_id])
+
+    history_frames = []
+    for alias_id in aliases:
+        alias_history = get_constructor_results_history(alias_id)
+        if not alias_history.empty:
+            history_frames.append(alias_history)
+
+    if history_frames:
+        history = pd.concat(history_frames, ignore_index=True)
+        history = history.drop_duplicates(subset=["season", "round", "raceName"]).copy()
+        history = history.sort_values(["season", "round"]).reset_index(drop=True)
+    else:
+        history = pd.DataFrame(columns=["season", "round", "raceName", "date"])
+
+    races = int(len(history))
+    debut = "Unknown"
+    if not history.empty:
+        first_row = history.iloc[0]
+        debut = f"{int(first_row['season'])} {first_row['raceName']}"
+
+    leader = TEAM_LEADERS.get(constructor_id, "Unknown")
+
+    current_drivers_df = get_constructor_season_driver_points(constructor_id, int(selected_season))
+    current_drivers = []
+    if not current_drivers_df.empty:
+        for _, row in current_drivers_df.iterrows():
+            current_drivers.append(f"{row['driverName']} ({row['points']:.1f} pts)")
+
+    previous_names = lineage.get("previous_names", TEAM_PREVIOUS_NAMES.get(constructor_id, []))
+    previous_names = sorted(previous_names)
+
+    wcc_titles_df = get_all_wcc_titles()
+    team_wcc = wcc_titles_df[wcc_titles_df["constructorId"].isin(aliases)].copy()
+    team_wcc = team_wcc.sort_values("season").reset_index(drop=True)
+
+    wcc_entries = []
+    if not team_wcc.empty:
+        for _, row in team_wcc.iterrows():
+            season = int(row["season"])
+            winning_constructor_id = row.get("constructorId", constructor_id)
+            drivers_df = get_constructor_season_driver_points(winning_constructor_id, season)
+            if drivers_df.empty:
+                drivers_text = "Drivers unavailable"
+            else:
+                drivers_text = ", ".join(
+                    [f"{drow['driverName']} ({drow['points']:.1f})" for _, drow in drivers_df.iterrows()]
+                )
+
+            wcc_entries.append(
+                {
+                    "season": season,
+                    "points": float(row["points"]),
+                    "drivers": drivers_text,
+                }
+            )
+
+    wdc_titles_df = get_all_wdc_titles()
+    team_wdc = wdc_titles_df[wdc_titles_df["constructorId"].isin(aliases)].copy()
+    team_wdc = team_wdc.sort_values("season").reset_index(drop=True)
+
+    wdc_entries = []
+    if not team_wdc.empty:
+        for _, row in team_wdc.iterrows():
+            wdc_entries.append(
+                {
+                    "season": int(row["season"]),
+                    "driver": row["driverName"],
+                    "points": float(row["points"]),
+                }
+            )
+
+    return {
+        "constructorId": constructor_id,
+        "name": constructor_name,
+        "debut": debut,
+        "leader": leader,
+        "drivers": current_drivers,
+        "races": races,
+        "wcc_count": int(len(wcc_entries)),
+        "wcc_entries": wcc_entries,
+        "wdc_count": int(len(wdc_entries)),
+        "wdc_entries": wdc_entries,
+        "previous_names": previous_names,
+        "history": get_team_history_blurb(constructor_name),
+    }
 
 
 def get_driver_season_results(driver_id, season):

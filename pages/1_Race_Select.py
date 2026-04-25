@@ -72,7 +72,7 @@ def render_news_briefing() -> None:
 render_header()
 selected_year, selected_race, event = render_controls()
 
-col_primary, col_secondary = st.columns(2)
+col_primary, col_secondary, col_tertiary = st.columns(3)
 
 with col_primary:
     if st.button("LOAD ARCHIVE DATA", use_container_width=True):
@@ -84,5 +84,9 @@ with col_primary:
 with col_secondary:
     if st.button("DRIVER COMPARISON & HISTORY", use_container_width=True):
         st.switch_page("pages/3_Driver_Comparison.py")
+
+with col_tertiary:
+    if st.button("TEAM WIKI", use_container_width=True):
+        st.switch_page("pages/4_Team_Wiki.py")
 
 render_news_briefing()

@@ -14,6 +14,7 @@ A Streamlit dashboard for exploring Formula 1 lap data, telemetry, championship 
 - **Driver Dossier**: Career profile view for two selected drivers including races, wins, points, debut race, and season-level best/least points summaries.
 - **Year-Scoped Driver Selection**: Driver comparison is filtered by selected season first, then drivers are selected from that season's participants.
 - **Interactive Championship Progression Chart**: Round-by-round championship points comparison for two drivers in the selected season, with interactive tooltips and chart fallback behavior.
+- **Team Wiki (INCOMPLETE)**: Alphabetical constructor encyclopedia with debut, leader, drivers, races, previous names, and WDC/WCC title-year breakdowns.
 - **Retro Design System**: High-contrast, blocky layouts with a warm `#e5dccb` text on `#211d18` ink background to simulate a vintage paper or 8-bit timing screen.
 
 ## Project Structure
@@ -22,6 +23,7 @@ A Streamlit dashboard for exploring Formula 1 lap data, telemetry, championship 
 - `pages/1_Race_Select.py`: User interface for selecting the historical year/specific Grand Prix and viewing motorsport news headlines.
 - `pages/2_Dashboard.py`: Main dashboard view orchestrating the rendering of track info, standings, and sessions.
 - `pages/3_Driver_Comparison.py`: Driver comparison and history page with season-first filtering and championship progression charting.
+- `pages/4_Team_Wiki.py`: Team encyclopedia page with season filter, compact team cards, and title history tables.
 - `sessions.py`: Data layer for FastF1 loading, standings, motorsport RSS news, season driver lists, driver dossiers, and chart inputs.
 - `charts.py`: Encapsulates all matplotlib telemetry and track position charts.
 - `circuit_map.py`: Logic for fuzzy-matching and displaying track layout images from the `circuits/` directory.
@@ -67,6 +69,12 @@ If some telemetry traces, speed traps, or tyre fields are empty:
 
 - The comparison chart is season-specific. Select a year first, then select two drivers from that year.
 - Championship progression is computed round-by-round; if one endpoint is unavailable, the app falls back to season results data.
+
+### Team Wiki Notes (INCOMPLETE)
+
+- Team Wiki cards are shown in alphabetical order.
+- Some historical constructor lineage mappings and title-era attribution can be incomplete depending on upstream data availability and naming continuity.
+- The page displays an explicit INCOMPLETE notice as a reminder that team history stats may require manual verification.
 
 ## Good Next Improvements
 
