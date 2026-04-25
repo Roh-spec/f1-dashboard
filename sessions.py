@@ -1,4 +1,9 @@
 import os
+from email.utils import parsedate_to_datetime
+from urllib.error import URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+import xml.etree.ElementTree as ET
 
 import fastf1
 from fastf1.ergast import Ergast
@@ -155,3 +160,70 @@ def best_driver_name(row):
         if pd.notna(value) and str(value).strip() and str(value).lower() != "nan":
             return str(value).strip()
     return "Unknown"
+
+
+@st.cache_data(ttl=1800)
+def get_motorsport_news(limit=8):
+    feeds = [
+        "https://www.motorsport.com/rss/f1/news/",
+        "https://www.racefans.net/feed/",
+        "https://www.the-race.com/feed/",
+    ]
+
+    stories = []
+    seen_titles = set()
+
+    for feed_url in feeds:
+        try:
+            request = Request(
+                feed_url,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; F1-Retro-Dashboard/1.0)"},
+            )
+            with urlopen(request, timeout=6) as response:
+                payload = response.read()
+            root = ET.fromstring(payload)
+        except (URLError, TimeoutError, ET.ParseError, ValueError):
+            continue
+
+        for item in root.findall(".//item"):
+            title = (item.findtext("title") or "").strip()
+            link = (item.findtext("link") or "").strip()
+            if not title or not link:
+                continue
+
+            title_key = title.lower()
+            if title_key in seen_titles:
+                continue
+            seen_titles.add(title_key)
+
+            pub_date_raw = (item.findtext("pubDate") or "").strip()
+            pub_date = None
+            if pub_date_raw:
+                try:
+                    pub_date = parsedate_to_datetime(pub_date_raw)
+                except (TypeError, ValueError):
+                    pub_date = None
+
+            source = urlparse(link).netloc.replace("www.", "")
+            source = source or urlparse(feed_url).netloc.replace("www.", "")
+
+            stories.append(
+                {
+                    "title": title,
+                    "link": link,
+                    "source": source,
+                    "published": pub_date,
+                }
+            )
+
+    def _published_rank(item):
+        published = item["published"]
+        if published is None:
+            return 0.0
+        try:
+            return published.timestamp()
+        except (OverflowError, OSError, ValueError):
+            return 0.0
+
+    stories.sort(key=_published_rank, reverse=True)
+    return stories[:limit]

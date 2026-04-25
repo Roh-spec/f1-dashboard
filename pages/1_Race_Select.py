@@ -1,5 +1,5 @@
 import streamlit as st
-from sessions import get_schedule
+from sessions import get_motorsport_news, get_schedule
 
 def render_header() -> None:
     with st.container(border=True, key="dialog_header"):
@@ -43,6 +43,32 @@ def render_controls():
     return selected_year, selected_race, event
 
 
+def render_news_briefing() -> None:
+    with st.container(border=True, key="dialog_news_briefing"):
+        st.markdown("<p class='section-kicker'>Live Feed</p>", unsafe_allow_html=True)
+        st.markdown("<h2>Motorsport News Briefing</h2>", unsafe_allow_html=True)
+        st.markdown(
+            "<p class='panel-note'>A quick cross-series snapshot pulled from trusted motorsport outlets.</p>",
+            unsafe_allow_html=True,
+        )
+
+        stories = get_motorsport_news(limit=8)
+        if not stories:
+            st.info("News feed unavailable right now. Try reloading in a moment.")
+            return
+
+        for story in stories:
+            published = story.get("published")
+            if published is not None:
+                published_text = published.strftime("%d %b %Y")
+            else:
+                published_text = "Recent"
+
+            st.markdown(
+                f"- [{story['title']}]({story['link']})  \\\n+  {story['source']} | {published_text}"
+            )
+
+
 render_header()
 selected_year, selected_race, event = render_controls()
 
@@ -51,3 +77,5 @@ if st.button("LOAD ARCHIVE DATA", use_container_width=True):
     st.session_state.selected_race = selected_race
     st.session_state.selected_event = event
     st.switch_page("pages/2_Dashboard.py")
+
+render_news_briefing()
