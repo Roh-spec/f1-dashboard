@@ -1,6 +1,7 @@
 import streamlit as st
 
 from charts import plot_lap_times, plot_top_2_telemetry
+from design import anime_loading_box
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 
@@ -93,7 +94,7 @@ def render_qualifying_incidents(session, results):
 def render_qualifying_session(year, race_name, session_name):
     label = SESSION_LABELS.get(session_name, session_name)
 
-    with st.spinner(f"LOADING {label.upper()} DATA..."):
+    with anime_loading_box(f"Loading {label.upper()} data..."):
         session, results, laps = load_session_data(year, race_name, session_name)
 
     with st.container(border=True, key=f"dialog_{session_name.lower().replace(' ', '_')}"):

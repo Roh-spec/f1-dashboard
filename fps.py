@@ -1,5 +1,6 @@
 import streamlit as st
 
+from design import anime_loading_box
 from sessions import SESSION_LABELS, best_driver_name, format_timing_value, load_session_data
 
 
@@ -105,6 +106,6 @@ def render_fp_sessions(year, race_name, practice_sessions):
         columns = st.columns(len(practice_sessions))
         for column, session_name in zip(columns, practice_sessions):
             with column:
-                with st.spinner(f"LOADING {SESSION_LABELS.get(session_name, session_name).upper()} DATA..."):
+                with anime_loading_box(f"Loading {SESSION_LABELS.get(session_name, session_name).upper()} data..."):
                     session, results, laps = load_session_data(year, race_name, session_name)
                 render_fp_card(session_name, results, laps)

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from html import escape
+
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 def inject_retro_css() -> None:
@@ -489,3 +493,94 @@ def inject_retro_css() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+@contextmanager
+def anime_loading_box(message: str = "Loading API data..."):
+        placeholder = st.empty()
+
+        loader_html = f"""
+        <div class=\"api-loader-shell\" role=\"status\" aria-live=\"polite\"> 
+            <div class=\"api-loader-grid\"> 
+                <div class=\"square\" style=\"--rotation: 0deg; --scale: 0.88;\"></div>
+                <div class=\"square\" style=\"--rotation: 18deg; --scale: 1.03;\"></div>
+                <div class=\"square\" style=\"--rotation: 32deg; --scale: 0.96;\"></div>
+                <div class=\"square\" style=\"--rotation: -18deg; --scale: 1.06;\"></div>
+                <div class=\"square\" style=\"--rotation: -32deg; --scale: 0.92;\"></div>
+            </div>
+            <p class=\"api-loader-text\">{escape(message)}</p>
+        </div>
+
+        <style>
+            .api-loader-shell {{
+                --hex-orange-1: #f79f45;
+                --hex-red-1: #d04b33;
+                width: min(560px, 100%);
+                margin: 0 auto 12px;
+                border: 3px solid #211d18;
+                border-radius: 8px;
+                background: linear-gradient(180deg, #fbf7ee 0%, #e5dccb 100%);
+                box-shadow: 6px 6px 0 #211d18;
+                padding: 14px 16px;
+                box-sizing: border-box;
+            }}
+
+            .api-loader-grid {{
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                align-items: center;
+            }}
+
+            .square {{
+                aspect-ratio: 1 / 1;
+                border: 3px solid var(--hex-orange-1);
+                background: var(--hex-red-1);
+                border-radius: 4px;
+                transform-origin: center center;
+                will-change: transform, border-color, background-color;
+            }}
+
+            .api-loader-text {{
+                margin: 10px 0 0;
+                font-family: 'Press Start 2P', cursive;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                font-size: 0.72rem;
+                color: #211d18;
+                text-align: center;
+            }}
+        </style>
+
+        <script type=\"module\">
+            import {{ waapi, animate, stagger }} from 'https://esm.sh/animejs';
+
+            waapi.animate('.square',  {{
+                borderColor: ['var(--hex-orange-1)', 'var(--hex-red-1)'],
+                ease: 'inOutSine',
+                duration: 1200,
+                delay: stagger(110),
+                loop: true,
+                alternate: true,
+            }});
+
+            animate('.square',  {{
+                rotate: ['0deg', 'var(--rotation)'],
+                scale: [1, 'var(--scale)'],
+                background: ['var(--hex-red-1)', 'var(--hex-orange-1)'],
+                ease: 'inOutSine',
+                duration: 1200,
+                delay: stagger(110),
+                loop: true,
+                alternate: true,
+            }});
+        </script>
+        """
+
+        with placeholder.container():
+                components.html(loader_html, height=126)
+
+        try:
+                yield
+        finally:
+                placeholder.empty()

@@ -201,6 +201,7 @@ def _get_circuit_points(year: int, race_name: str, event_name: str) -> tuple[pd.
     try:
         session = fastf1.get_session(year, race_name, "R")
         session.load(laps=False, telemetry=False, weather=False, messages=False)
+
         circuit_info = session.get_circuit_info()
         corners = circuit_info.corners[["X", "Y"]].dropna().copy()
         if len(corners) >= 4:
