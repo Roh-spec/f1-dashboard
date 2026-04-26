@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import fastf1.plotting
 import streamlit as st
 import pandas as pd
+from matplotlib.patches import Patch
 
 # Use fastf1 setup
 fastf1.plotting.setup_mpl(mpl_timedelta_support=False, misc_mpl_mods=False, color_scheme='fastf1')
@@ -138,5 +139,134 @@ def plot_driver_positions(session):
     fig.suptitle(f"{event_name} - {session.name} Track Positions", color='#fbf7ee', family='monospace')
     
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb', fontsize='small')
+    fig.tight_layout()
+    st.pyplot(fig)
+
+
+def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
+    if session is None or session.laps is None or session.laps.empty:
+        st.warning("No lap data available for tyre strategy.")
+        return
+
+    laps = session.laps.copy()
+    required = {"Driver", "Stint", "Compound", "LapNumber"}
+    if not required.issubset(set(laps.columns)):
+        st.warning("Tyre strategy data unavailable for this session.")
+        return
+
+    laps = laps.dropna(subset=["Driver", "Stint", "LapNumber"]).copy()
+    if laps.empty:
+        st.warning("Tyre strategy data unavailable for this session.")
+        return
+
+    compound_colors = {
+        "SOFT": "#d81f2e",
+        "MEDIUM": "#f4d03f",
+        "HARD": "#f5f6fa",
+        "INTERMEDIATE": "#32c36c",
+        "WET": "#2a7fff",
+        "UNKNOWN": "#8f9cb0",
+    }
+
+    try:
+        driver_order = session.results["Abbreviation"].dropna().astype(str).tolist()
+    except Exception:
+        driver_order = laps["Driver"].dropna().astype(str).unique().tolist()
+
+    if not driver_order:
+        driver_order = laps["Driver"].dropna().astype(str).unique().tolist()
+    if compact:
+        max_drivers = min(max_drivers, 12)
+    driver_order = driver_order[:max_drivers]
+
+    if compact:
+        fig_height = max(3.8, min(6.2, 0.28 * len(driver_order) + 1.8))
+        fig_width = 8.4
+    else:
+        fig_height = max(4.8, min(10.5, 0.42 * len(driver_order) + 2.0))
+        fig_width = 11
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    _set_retro_style(fig, [ax])
+
+    y_positions = list(range(len(driver_order)))
+    y_map = {drv: idx for idx, drv in enumerate(driver_order)}
+    bar_height = 0.62
+
+    for drv in driver_order:
+        drv_laps = laps[laps["Driver"] == drv].copy()
+        if drv_laps.empty:
+            continue
+
+        stint_groups = (
+            drv_laps.groupby("Stint", as_index=False)
+            .agg(
+                lap_start=("LapNumber", "min"),
+                lap_end=("LapNumber", "max"),
+                compound=("Compound", "last"),
+            )
+            .sort_values("lap_start")
+        )
+
+        y = y_map[drv]
+        for _, stint in stint_groups.iterrows():
+            lap_start = int(stint["lap_start"])
+            lap_end = int(stint["lap_end"])
+            width = max(0.85, (lap_end - lap_start) + 1)
+            compound = str(stint.get("compound", "UNKNOWN")).upper()
+            color = compound_colors.get(compound, compound_colors["UNKNOWN"])
+
+            ax.broken_barh(
+                [(lap_start - 0.5, width)],
+                (y - bar_height / 2, bar_height),
+                facecolors=color,
+                edgecolors="#0e1220",
+                linewidth=0.8,
+            )
+
+        # Mark pit-stop points at stint boundaries
+        pit_laps = stint_groups["lap_start"].tolist()[1:]
+        if pit_laps:
+            ax.scatter(
+                [float(l) - 0.5 for l in pit_laps],
+                [y] * len(pit_laps),
+                s=16,
+                color="#ff2f3f",
+                edgecolors="#0e1220",
+                linewidths=0.6,
+                zorder=4,
+            )
+
+    max_lap = int(laps["LapNumber"].max()) if not laps["LapNumber"].dropna().empty else 0
+    ax.set_xlim(0.5, max(5.5, max_lap + 1))
+    ax.set_ylim(-0.8, len(driver_order) - 0.2)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(driver_order, color="#e5dccb")
+    ax.invert_yaxis()
+    ax.set_xlabel("Lap Number", color="#e5dccb")
+    ax.set_ylabel("Driver", color="#e5dccb")
+    ax.grid(axis="x", color="#2a3146", linestyle="-", linewidth=0.5, alpha=0.45)
+
+    legend_items = [
+        Patch(facecolor=compound_colors["SOFT"], edgecolor="none", label="Soft"),
+        Patch(facecolor=compound_colors["MEDIUM"], edgecolor="none", label="Medium"),
+        Patch(facecolor=compound_colors["HARD"], edgecolor="none", label="Hard"),
+        Patch(facecolor=compound_colors["INTERMEDIATE"], edgecolor="none", label="Intermediate"),
+        Patch(facecolor=compound_colors["WET"], edgecolor="none", label="Wet"),
+    ]
+    ax.legend(
+        handles=legend_items,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.06),
+        ncol=5 if not compact else 3,
+        frameon=True,
+        facecolor="#211d18",
+        edgecolor="#6f675b",
+        labelcolor="#e5dccb",
+        fontsize="small" if not compact else "x-small",
+    )
+
+    event_name = session.event.EventName if session.event is not None else "Session"
+    fig.suptitle(f"{event_name} - {session.name} Tyre Strategy Timeline", color="#fbf7ee", family="monospace")
     fig.tight_layout()
     st.pyplot(fig)

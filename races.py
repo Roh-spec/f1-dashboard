@@ -1,6 +1,11 @@
 import streamlit as st
 
-from charts import plot_driver_positions, plot_lap_times, plot_top_2_telemetry
+from charts import (
+    plot_driver_positions,
+    plot_lap_times,
+    plot_top_2_telemetry,
+    plot_tyre_strategy_timeline,
+)
 from design import anime_loading_box, render_top_podium_card
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
@@ -152,9 +157,11 @@ def render_race_session(year, race_name, session_name):
         with col2:
             plot_lap_times(session)
         
-        st.markdown("<h3>Track Positions</h3>", unsafe_allow_html=True)
-        _, col, _ = st.columns([1, 4, 1])
-        with col:
+        st.markdown("<h3>Race Position & Tyre Strategy</h3>", unsafe_allow_html=True)
+        pos_col, tyre_col = st.columns(2)
+        with pos_col:
             plot_driver_positions(session)
+        with tyre_col:
+            plot_tyre_strategy_timeline(session, compact=True)
             
         render_race_incidents(session, results)

@@ -171,5 +171,5 @@ else:
     render_event_snapshot(event, event_sessions)
     render_track_details(selected_year, selected_race, event)
     render_stage_stats(event, event_sessions)
-    render_standings(selected_year, event['RoundNumber'])
     render_sessions(selected_year, selected_race, event)
+    render_standings(selected_year, event['RoundNumber'])
