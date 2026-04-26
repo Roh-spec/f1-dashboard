@@ -2,6 +2,7 @@ import streamlit as st
 import wikipedia
 
 from circuit_map import render_circuit_map
+from design import render_standings_bar_card
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
@@ -101,7 +102,13 @@ def render_standings(year, round_num) -> None:
                 wdc_display['DRIVER'] = wdc_display['givenName'] + " " + wdc_display['familyName']
                 wdc_display = wdc_display[['position', 'DRIVER', 'points', 'wins']]
                 wdc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
-                st.dataframe(wdc_display.set_index('POS'), use_container_width=True)
+                render_standings_bar_card(
+                    wdc_display,
+                    title="Driver Standings",
+                    name_column="DRIVER",
+                    points_column="PTS",
+                    limit=20,
+                )
             else:
                 st.warning("WDC Standings unavailable.")
 
@@ -119,7 +126,14 @@ def render_standings(year, round_num) -> None:
                     
                 wcc_display = wcc_display[['position', 'TEAM', 'points', 'wins']]
                 wcc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
-                st.dataframe(wcc_display.set_index('POS'), use_container_width=True)
+                render_standings_bar_card(
+                    wcc_display,
+                    title="Constructor Standings",
+                    name_column="TEAM",
+                    points_column="PTS",
+                    limit=20,
+                    highlight_top=True,
+                )
             else:
                 st.warning("WCC Standings unavailable.")
 

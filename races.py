@@ -1,7 +1,7 @@
 import streamlit as st
 
 from charts import plot_driver_positions, plot_lap_times, plot_top_2_telemetry
-from design import anime_loading_box
+from design import anime_loading_box, render_top_podium_card
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 
@@ -132,6 +132,14 @@ def render_race_session(year, race_name, session_name):
         if table is None or table.empty:
             st.warning("Session not completed yet or data unavailable.")
             return
+
+        render_top_podium_card(
+            table,
+            title=str(race_name),
+            subtitle=f"{label} archive summary",
+            badge="LAST RACE",
+            time_column="TIME/GAP",
+        )
 
         st.dataframe(table.set_index("POS"), use_container_width=True)
         if "DRIVER" in table:

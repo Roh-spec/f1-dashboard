@@ -105,6 +105,39 @@ def inject_retro_css() -> None:
             overflow: hidden;
         }
 
+        .top-nav-shell {
+            border: 3px solid var(--line);
+            border-radius: 6px;
+            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+            box-shadow: 6px 6px 0 var(--line);
+            margin-bottom: 18px;
+            padding: 10px 14px;
+        }
+
+        .top-nav-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 0;
+            color: var(--ink);
+        }
+
+        div[data-testid="stPageLink"] a {
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: #fffaf2;
+            box-shadow: 3px 3px 0 var(--line);
+            color: var(--ink) !important;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            min-height: 34px;
+            padding: 8px 10px;
+            text-transform: uppercase;
+        }
+
         .hero::after {
             content: "";
             display: block;
@@ -406,6 +439,150 @@ def inject_retro_css() -> None:
             background: rgba(255, 250, 239, 0.95);
         }
 
+        .timing-card {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: linear-gradient(180deg, #14161d 0%, #0f1118 100%);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.36);
+            padding: 8px 10px 6px;
+            margin: 8px 0 12px;
+        }
+
+        .timing-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .timing-title {
+            color: #d4dbea;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .timing-row {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 6px 0;
+        }
+
+        .timing-row:first-of-type {
+            border-top: 0;
+        }
+
+        .timing-pos {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.62rem;
+            color: #f5f7fb;
+            letter-spacing: 0.03em;
+        }
+
+        .timing-name {
+            color: #f5f7fb;
+            font-size: 0.95rem;
+            line-height: 1.05;
+        }
+
+        .timing-team {
+            color: #93a0b3;
+            font-size: 0.78rem;
+            line-height: 1.1;
+            margin-top: 1px;
+        }
+
+        .timing-time {
+            color: #b6bfd1;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            text-align: right;
+            padding-left: 8px;
+        }
+
+        .timing-extra {
+            color: #8f9cb0;
+            font-size: 0.72rem;
+            margin-top: 2px;
+            letter-spacing: 0.01em;
+        }
+
+        .standings-card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: linear-gradient(180deg, #14161d 0%, #0f1118 100%);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+            padding: 10px 12px 8px;
+            margin: 8px 0 12px;
+        }
+
+        .standings-title {
+            color: #8f9cb0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.52rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .standings-row {
+            display: grid;
+            grid-template-columns: 22px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .standings-row:first-of-type {
+            border-top: 0;
+        }
+
+        .standings-rank {
+            color: #7f8898;
+            font-size: 0.74rem;
+            text-align: right;
+        }
+
+        .standings-main {
+            min-width: 0;
+        }
+
+        .standings-name {
+            color: #edf2fb;
+            font-size: 0.92rem;
+            line-height: 1.05;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .standings-bar-shell {
+            margin-top: 4px;
+            height: 4px;
+            border-radius: 999px;
+            background: #20283a;
+            overflow: hidden;
+        }
+
+        .standings-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: #d81f2e;
+        }
+
+        .standings-points {
+            color: #ff2f3f;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.54rem;
+            white-space: nowrap;
+            padding-left: 6px;
+        }
+
         [data-testid="stAlert"] {
             border-radius: 4px;
             border: 1px solid var(--line);
@@ -584,3 +761,192 @@ def anime_loading_box(message: str = "Loading API data..."):
                 yield
         finally:
                 placeholder.empty()
+
+
+def _pick_first_value(row, keys, empty="-"):
+    for key in keys:
+        value = row.get(key)
+        text = str(value).strip() if value is not None else ""
+        if text and text.lower() not in {"nan", "none", "nat"}:
+            return text
+    return empty
+
+
+def render_timing_table_card(
+    dataframe,
+    title: str,
+    badge: str | None = None,
+    time_column: str | None = None,
+    limit: int | None = 8,
+    extra_columns: list[str] | None = None,
+) -> None:
+    if dataframe is None or getattr(dataframe, "empty", True):
+        st.warning("No timing data available.")
+        return
+
+    rows_html = []
+    data_slice = dataframe if limit is None else dataframe.head(limit)
+
+    for _, row in data_slice.iterrows():
+        position = _pick_first_value(row, ["POS", "position"], "-")
+        driver = _pick_first_value(row, ["DRIVER", "TEAM"], "-")
+        team = _pick_first_value(row, ["TEAM"], "")
+        timing = _pick_first_value(
+            row,
+            [time_column] if time_column else ["TIME/GAP", "Q3", "Q2", "Q1", "PTS", "FASTEST LAP"],
+            "-",
+        )
+        if time_column is None and timing == "-" and "PTS" in dataframe.columns:
+            timing = f"{_pick_first_value(row, ['PTS'], '0')} pts"
+
+        extra_text = ""
+        if extra_columns:
+            parts = []
+            for column in extra_columns:
+                if column in dataframe.columns:
+                    value = _pick_first_value(row, [column], "-")
+                    parts.append(f"{column}: {value}")
+            if parts:
+                extra_text = f"<div class='timing-extra'>{escape(' | '.join(parts))}</div>"
+
+        rows_html.append(
+            "<div class='timing-row'>"
+            f"<div class='timing-pos'>P{escape(str(position))}</div>"
+            "<div>"
+            f"<div class='timing-name'>{escape(driver)}</div>"
+            f"<div class='timing-team'>{escape(team)}</div>"
+            f"{extra_text}"
+            "</div>"
+            f"<div class='timing-time'>{escape(timing)}</div>"
+            "</div>"
+        )
+
+    badge_html = f"<div><span class='timing-label'>{escape(badge)}</span></div>" if badge else ""
+    st.markdown(
+        "<div class='timing-card'>"
+        "<div class='timing-header'>"
+        f"{badge_html}"
+        f"<div class='timing-title'>{escape(title)}</div>"
+        "</div>"
+        f"{''.join(rows_html)}"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_standings_bar_card(
+    dataframe,
+    title: str,
+    name_column: str,
+    points_column: str = "PTS",
+    limit: int = 10,
+    highlight_top: bool = False,
+) -> None:
+    if dataframe is None or getattr(dataframe, "empty", True):
+        st.warning("Standings unavailable.")
+        return
+
+    data_slice = dataframe.head(limit).copy()
+
+    def _safe_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    max_points = max((_safe_float(v) for v in data_slice.get(points_column, [])), default=0.0) or 1.0
+
+    rows_html = []
+    for _, row in data_slice.iterrows():
+        rank = _pick_first_value(row, ["POS", "position"], "-")
+        name = _pick_first_value(row, [name_column], "-")
+        points = _safe_float(row.get(points_column, 0))
+        width_pct = max(0.0, min(100.0, (points / max_points) * 100.0))
+        bar_color = "#f1f1f1" if highlight_top and str(rank) == "1" else "#d81f2e"
+
+        rows_html.append(
+            "<div class='standings-row'>"
+            f"<div class='standings-rank'>{escape(str(rank))}</div>"
+            "<div class='standings-main'>"
+            f"<div class='standings-name'>{escape(name)}</div>"
+            "<div class='standings-bar-shell'>"
+            f"<div class='standings-bar' style='width:{width_pct:.2f}%; background:{bar_color};'></div>"
+            "</div>"
+            "</div>"
+            f"<div class='standings-points'>{int(points) if points.is_integer() else f'{points:.1f}'} pts</div>"
+            "</div>"
+        )
+
+    st.markdown(
+        "<div class='standings-card'>"
+        f"<div class='standings-title'>{escape(title)}</div>"
+        f"{''.join(rows_html)}"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_top_podium_card(
+    dataframe,
+    title: str,
+    subtitle: str = "",
+    badge: str = "LAST RACE",
+    time_column: str | None = None,
+) -> None:
+    if dataframe is None or getattr(dataframe, "empty", True):
+        return
+
+    top_three = dataframe.head(3)
+    cells = []
+
+    for _, row in top_three.iterrows():
+        position = _pick_first_value(row, ["POS", "position"], "-")
+        driver = _pick_first_value(row, ["DRIVER", "TEAM"], "-")
+        team = _pick_first_value(row, ["TEAM"], "")
+        timing = _pick_first_value(
+            row,
+            [time_column] if time_column else ["TIME/GAP", "Q3", "Q2", "Q1", "PTS", "FASTEST LAP"],
+            "-",
+        )
+        if time_column is None and timing == "-" and "PTS" in dataframe.columns:
+            timing = f"{_pick_first_value(row, ['PTS'], '0')} pts"
+
+        pos_class = "podium-pos podium-pos-leader" if str(position) == "1" else "podium-pos"
+        cells.append(
+            "<div class='podium-cell'>"
+            f"<div class='{pos_class}'>P{escape(str(position))}</div>"
+            f"<div class='podium-name'>{escape(driver)}</div>"
+            f"<div class='podium-team'>{escape(team)}</div>"
+            f"<div class='podium-time'>{escape(timing)}</div>"
+            "</div>"
+        )
+
+    subtitle_html = f"<div class='podium-subtitle'>{escape(subtitle)}</div>" if subtitle else ""
+    html = (
+        "<div class='podium-card'>"
+        "<div class='podium-header'>"
+        f"<span class='podium-badge'>{escape(badge)}</span>"
+        f"<span class='podium-title'>{escape(title)}</span>"
+        "</div>"
+        f"{subtitle_html}"
+        "<div class='podium-grid'>"
+        f"{''.join(cells)}"
+        "</div>"
+        "</div>"
+        "<style>"
+        ".podium-card{border:1px solid rgba(255,255,255,.12);border-radius:10px;background:linear-gradient(180deg,#14161d 0%,#0f1118 100%);box-shadow:0 14px 40px rgba(0,0,0,.34);padding:12px 14px;margin:8px 0 12px;}"
+        ".podium-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}"
+        ".podium-badge{background:#ff2f21;color:#fff;border-radius:4px;padding:3px 8px;font-size:.62rem;font-weight:900;letter-spacing:.08em;line-height:1;}"
+        ".podium-title{color:#f5f7fb;font-family:'Press Start 2P',cursive;font-size:.7rem;letter-spacing:.04em;}"
+        ".podium-subtitle{color:#97a3b6;font-size:.78rem;margin-bottom:8px;}"
+        ".podium-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}"
+        ".podium-cell{border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(255,255,255,.02);padding:8px 10px;}"
+        ".podium-pos{font-family:'Press Start 2P',cursive;font-size:.85rem;color:#f5f7fb;margin-bottom:5px;}"
+        ".podium-pos-leader{color:#ff2f21;}"
+        ".podium-name{color:#f5f7fb;font-size:.98rem;line-height:1.12;}"
+        ".podium-team{color:#93a0b3;font-size:.8rem;line-height:1.12;margin-top:2px;}"
+        ".podium-time{color:#bcc5d6;font-size:.78rem;line-height:1.2;margin-top:6px;font-variant-numeric:tabular-nums;}"
+        "@media(max-width:900px){.podium-grid{grid-template-columns:1fr;}}"
+        "</style>"
+    )
+    st.markdown(html, unsafe_allow_html=True)
