@@ -15,7 +15,7 @@ def _set_retro_style(fig, ax_list):
         for spine in ax.spines.values():
             spine.set_color('#6f675b') # --muted
 
-def plot_top_2_telemetry(session):
+def plot_top_2_telemetry(session, compact=False):
     if session is None or session.laps is None or session.laps.empty:
         st.warning("No lap data available for telemetry.")
         return
@@ -53,7 +53,8 @@ def plot_top_2_telemetry(session):
     color_d1 = fastf1.plotting.get_driver_color(driver_1, session)
     color_d2 = fastf1.plotting.get_driver_color(driver_2, session)
 
-    fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
+    fig_size = (7.6, 5.6) if compact else (10, 8)
+    fig, ax = plt.subplots(3, 1, figsize=fig_size, sharex=True)
     _set_retro_style(fig, ax)
 
     ax[0].plot(tel_d1['Distance'], tel_d1['Speed'], color=color_d1, label=driver_1)
@@ -75,7 +76,7 @@ def plot_top_2_telemetry(session):
     fig.tight_layout()
     st.pyplot(fig)
 
-def plot_lap_times(session):
+def plot_lap_times(session, compact=False):
     if session is None or session.laps is None or session.laps.empty:
         return
         
@@ -84,7 +85,8 @@ def plot_lap_times(session):
     except Exception:
         drivers = session.laps['Driver'].unique().tolist()
         
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig_size = (7.6, 4.6) if compact else (10, 6)
+    fig, ax = plt.subplots(figsize=fig_size)
     _set_retro_style(fig, [ax])
 
     for drv in drivers:
@@ -106,7 +108,7 @@ def plot_lap_times(session):
     fig.tight_layout()
     st.pyplot(fig)
 
-def plot_driver_positions(session):
+def plot_driver_positions(session, compact=False):
     if session is None or session.laps is None or session.laps.empty:
         return
         
@@ -115,7 +117,8 @@ def plot_driver_positions(session):
     except Exception:
         drivers = session.laps['Driver'].unique().tolist()
         
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig_size = (7.6, 5.4) if compact else (10, 8)
+    fig, ax = plt.subplots(figsize=fig_size)
     _set_retro_style(fig, [ax])
 
     for drv in drivers:

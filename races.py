@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 from charts import (
     plot_driver_positions,
@@ -80,14 +81,6 @@ def render_race_incidents(session, results):
                 for _, row in reds.iterrows():
                     red_text += f"- {row['Message']} ({get_lap_str(row['Lap'])})\n"
                 blocks.append((st.error, "🚩", red_text))
-                
-            scs = msgs[msgs['Message'].str.contains('SAFETY CAR|VIRTUAL SAFETY CAR', case=False, na=False)]
-            scs = scs[~scs['Message'].str.contains('IN THIS LAP|ENDING', case=False, na=False)]
-            if not scs.empty:
-                sc_text = "**Safety Cars:**\n"
-                for _, row in scs.iterrows():
-                    sc_text += f"- {row['Message']} ({get_lap_str(row['Lap'])})\n"
-                blocks.append((st.warning, "🟨", sc_text))
 
             pens = msgs[msgs['Message'].str.contains('PENALTY', case=False, na=False)]
             if not pens.empty:
@@ -115,6 +108,45 @@ def render_race_incidents(session, results):
 
     if not has_intel:
         st.success("Clean session. No major incidents.", icon="✅")
+
+
+def render_incident_timeline_box(session):
+    incident_df = pd.DataFrame(columns=["Lap", "Category", "Message"])
+    try:
+        msgs = session.race_control_messages
+        if msgs is not None and not msgs.empty and "Message" in msgs:
+            msg_map = [
+                ("RED FLAG", "Red Flag"),
+                ("VIRTUAL SAFETY CAR", "VSC"),
+                ("SAFETY CAR", "Safety Car"),
+                ("PENALTY", "Penalty"),
+                ("INVESTIGATION", "Investigation"),
+            ]
+            frames = []
+            for keyword, label in msg_map:
+                subset = msgs[msgs["Message"].str.contains(keyword, case=False, na=False)].copy()
+                if subset.empty:
+                    continue
+                subset["Category"] = label
+                frames.append(subset)
+
+            if frames:
+                incident_df = pd.concat(frames, ignore_index=True)
+                if "Lap" not in incident_df:
+                    incident_df["Lap"] = pd.NA
+                incident_df = incident_df[["Lap", "Category", "Message"]].copy()
+    except Exception:
+        incident_df = pd.DataFrame(columns=["Lap", "Category", "Message"])
+
+    with st.container(border=True, key=f"race_incident_timeline_{str(session.name).lower().replace(' ', '_')}"):
+        st.markdown("<h3>Incident Timeline</h3>", unsafe_allow_html=True)
+        if not incident_df.empty:
+            st.dataframe(
+                incident_df.sort_values(["Lap", "Category"], na_position="last").reset_index(drop=True),
+                use_container_width=True,
+            )
+        else:
+            st.info("No race-control incidents detected for this session.")
 
 
 def render_race_session(year, race_name, session_name):
@@ -150,18 +182,18 @@ def render_race_session(year, race_name, session_name):
         if "DRIVER" in table:
             st.success(f"Winner: {table.iloc[0]['DRIVER']}")
 
-        st.markdown("<h3>Race Telemetry & Lap Times</h3>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            plot_top_2_telemetry(session)
-        with col2:
-            plot_lap_times(session)
-        
-        st.markdown("<h3>Race Position & Tyre Strategy</h3>", unsafe_allow_html=True)
-        pos_col, tyre_col = st.columns(2)
-        with pos_col:
-            plot_driver_positions(session)
-        with tyre_col:
+        st.markdown("<h3>Race Graphs</h3>", unsafe_allow_html=True)
+        row_1_col_1, row_1_col_2 = st.columns(2)
+        with row_1_col_1:
+            plot_top_2_telemetry(session, compact=True)
+        with row_1_col_2:
+            plot_lap_times(session, compact=True)
+
+        row_2_col_1, row_2_col_2 = st.columns(2)
+        with row_2_col_1:
+            plot_driver_positions(session, compact=True)
+        with row_2_col_2:
             plot_tyre_strategy_timeline(session, compact=True)
             
         render_race_incidents(session, results)
+        render_incident_timeline_box(session)
