@@ -23,16 +23,38 @@ def _set_retro_style(fig, ax_list):
         for spine in ax.spines.values():
             spine.set_color('#6f675b') # --muted
 
+
+def _safe_laps(session):
+    if session is None:
+        return None
+
+    try:
+        return session.laps
+    except Exception:
+        return None
+
+
+def _safe_results(session):
+    if session is None:
+        return None
+
+    try:
+        return session.results
+    except Exception:
+        return None
+
+
 def plot_top_2_telemetry(session, compact=False):
-    if session is None or session.laps is None or session.laps.empty:
+    laps = _safe_laps(session)
+    if laps is None or laps.empty:
         st.warning("No lap data available for telemetry.")
         return
 
-    try:
-        results = session.results
+    results = _safe_results(session)
+    if results is not None and not results.empty and "Abbreviation" in results:
         top_2_drivers = results.iloc[:2]['Abbreviation'].tolist()
-    except Exception:
-        top_laps = session.laps.pick_quicklaps().sort_values(by='LapTime').dropna(subset=['LapTime'])
+    else:
+        top_laps = laps.pick_quicklaps().sort_values(by='LapTime').dropna(subset=['LapTime'])
         if top_laps.empty:
             st.warning("No quick laps available.")
             return
@@ -45,8 +67,8 @@ def plot_top_2_telemetry(session, compact=False):
     driver_1, driver_2 = top_2_drivers[0], top_2_drivers[1]
 
     try:
-        laps_d1 = session.laps.pick_driver(driver_1).pick_fastest()
-        laps_d2 = session.laps.pick_driver(driver_2).pick_fastest()
+        laps_d1 = laps.pick_driver(driver_1).pick_fastest()
+        laps_d2 = laps.pick_driver(driver_2).pick_fastest()
         
         if pd.isna(laps_d1['LapTime']) or pd.isna(laps_d2['LapTime']):
             st.warning("Could not find valid fastest lap for top drivers.")
@@ -85,20 +107,22 @@ def plot_top_2_telemetry(session, compact=False):
     st.pyplot(fig)
 
 def plot_lap_times(session, compact=False):
-    if session is None or session.laps is None or session.laps.empty:
+    laps = _safe_laps(session)
+    if laps is None or laps.empty:
         return
-        
-    try:
-        drivers = session.results['Abbreviation'].tolist()
-    except Exception:
-        drivers = session.laps['Driver'].unique().tolist()
+
+    results = _safe_results(session)
+    if results is not None and not results.empty and "Abbreviation" in results:
+        drivers = results['Abbreviation'].tolist()
+    else:
+        drivers = laps['Driver'].unique().tolist()
         
     fig_size = (7.6, 4.6) if compact else (10, 6)
     fig, ax = plt.subplots(figsize=fig_size)
     _set_retro_style(fig, [ax])
 
     for drv in drivers:
-        drv_laps = session.laps.pick_driver(drv).pick_quicklaps()
+        drv_laps = laps.pick_driver(drv).pick_quicklaps()
         if not drv_laps.empty:
             try:
                 color = fastf1.plotting.get_driver_color(drv, session)
@@ -117,20 +141,22 @@ def plot_lap_times(session, compact=False):
     st.pyplot(fig)
 
 def plot_driver_positions(session, compact=False):
-    if session is None or session.laps is None or session.laps.empty:
+    laps = _safe_laps(session)
+    if laps is None or laps.empty:
         return
-        
-    try:
-        drivers = session.results['Abbreviation'].tolist()
-    except Exception:
-        drivers = session.laps['Driver'].unique().tolist()
+
+    results = _safe_results(session)
+    if results is not None and not results.empty and "Abbreviation" in results:
+        drivers = results['Abbreviation'].tolist()
+    else:
+        drivers = laps['Driver'].unique().tolist()
         
     fig_size = (7.6, 5.4) if compact else (10, 8)
     fig, ax = plt.subplots(figsize=fig_size)
     _set_retro_style(fig, [ax])
 
     for drv in drivers:
-        drv_laps = session.laps.pick_driver(drv)
+        drv_laps = laps.pick_driver(drv)
         # Drop laps without position data
         drv_laps = drv_laps.dropna(subset=['Position'])
         if not drv_laps.empty:
@@ -155,11 +181,12 @@ def plot_driver_positions(session, compact=False):
 
 
 def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
-    if session is None or session.laps is None or session.laps.empty:
+    source_laps = _safe_laps(session)
+    if source_laps is None or source_laps.empty:
         st.warning("No lap data available for tyre strategy.")
         return
 
-    laps = session.laps.copy()
+    laps = source_laps.copy()
     required = {"Driver", "Stint", "Compound", "LapNumber"}
     if not required.issubset(set(laps.columns)):
         st.warning("Tyre strategy data unavailable for this session.")
@@ -179,9 +206,10 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
         "UNKNOWN": "#8f9cb0",
     }
 
-    try:
-        driver_order = session.results["Abbreviation"].dropna().astype(str).tolist()
-    except Exception:
+    results = _safe_results(session)
+    if results is not None and not results.empty and "Abbreviation" in results:
+        driver_order = results["Abbreviation"].dropna().astype(str).tolist()
+    else:
         driver_order = laps["Driver"].dropna().astype(str).unique().tolist()
 
     if not driver_order:
