@@ -281,36 +281,39 @@ def render_end_race_bar(event, selected_year) -> None:
     except Exception:
         next_event = None
 
-    left_col, right_col = st.columns([4.2, 1.8], vertical_alignment="center")
-    with left_col:
-        st.markdown(
-            (
-                "<div class='section-ribbon'>"
-                f"<span>{event['Location']}</span>"
-                f"<span>ROUND {event['RoundNumber']}</span>"
-                f"<span>{event['EventDate'].year}</span>"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-    with right_col:
-        if next_event is not None:
-            next_label = str(next_event.get("EventName", "Next Race")).upper()
-            if st.button(
-                f"NEXT RACE: {next_label} ➜",
-                key="race_analysis_next_race_link",
-                type="tertiary",
-                use_container_width=True,
-            ):
-                st.session_state.selected_event = next_event
-                st.session_state.selected_race = str(next_event.get("EventName", ""))
-                st.session_state.selected_year = int(selected_year)
-                st.rerun()
-        else:
+    with st.container(border=True, key="dialog_end_race_nav"):
+        left_col, mid_col, right_col = st.columns([1.2, 4.6, 1.2], vertical_alignment="center")
+        
+        with mid_col:
             st.markdown(
-                "<div class='section-ribbon'><span>SEASON COMPLETE</span></div>",
+                (
+                    "<div style='text-align: center; color: var(--ink); font-family: \"Press Start 2P\", cursive; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;'>"
+                    f"<span>{event['Location']}</span>"
+                    f"<span style='color: var(--muted); margin: 0 12px;'>•</span>"
+                    f"<span>ROUND {event['RoundNumber']}</span>"
+                    f"<span style='color: var(--muted); margin: 0 12px;'>•</span>"
+                    f"<span>{event['EventDate'].year}</span>"
+                    "</div>"
+                ),
                 unsafe_allow_html=True,
             )
+            
+        with right_col:
+            if next_event is not None:
+                if st.button(
+                    "NEXT RACE ➡️",
+                    key="race_analysis_next_race_link",
+                    use_container_width=True,
+                ):
+                    st.session_state.selected_event = next_event
+                    st.session_state.selected_race = str(next_event.get("EventName", ""))
+                    st.session_state.selected_year = int(selected_year)
+                    st.rerun()
+            else:
+                st.markdown(
+                    "<div style='text-align: center; color: var(--muted); font-family: \"Press Start 2P\", cursive; font-size: 0.6rem; margin-top: 10px;'>SEASON COMPLETE</div>",
+                    unsafe_allow_html=True,
+                )
 
 def render_sessions(year, race_name, event) -> None:
     event_sessions = get_event_sessions(event)
@@ -350,22 +353,11 @@ def render_page_header_navigation(event, selected_year: int) -> None:
         next_event = None
 
     with st.container(border=True, key="dialog_page_header_nav"):
-        st.markdown(
-            (
-                "<div class='section-ribbon'>"
-                f"<span>{event['EventName']}</span>"
-                f"<span>ROUND {event['RoundNumber']}</span>"
-                f"<span>{event['EventDate'].year}</span>"
-                "</div>"
-            ),
-            unsafe_allow_html=True,
-        )
-
-        left_col, mid_col, right_col = st.columns([1.4, 3.2, 1.4], vertical_alignment="center")
+        left_col, mid_col, right_col = st.columns([1.2, 4.6, 1.2], vertical_alignment="center")
 
         with left_col:
             if prev_event is not None and st.button(
-                "⬅️ PREVIOUS RACE",
+                "⬅️ PREV RACE",
                 key="race_analysis_top_previous_race",
                 use_container_width=True,
             ):
@@ -376,7 +368,15 @@ def render_page_header_navigation(event, selected_year: int) -> None:
 
         with mid_col:
             st.markdown(
-                "<p class='section-kicker' style='text-align:center; margin: 0;'>Race Navigation</p>",
+                (
+                    "<div style='text-align: center; color: var(--ink); font-family: \"Press Start 2P\", cursive; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;'>"
+                    f"<span>{event['EventName']}</span>"
+                    f"<span style='color: var(--muted); margin: 0 12px;'>•</span>"
+                    f"<span>ROUND {event['RoundNumber']}</span>"
+                    f"<span style='color: var(--muted); margin: 0 12px;'>•</span>"
+                    f"<span>{event['EventDate'].year}</span>"
+                    "</div>"
+                ),
                 unsafe_allow_html=True,
             )
 
