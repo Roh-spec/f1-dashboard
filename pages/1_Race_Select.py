@@ -83,10 +83,11 @@ with col_primary:
 
 with col_secondary:
     if st.button("DRIVER COMPARISON & HISTORY", use_container_width=True):
-        st.switch_page("pages/3_Driver_Comparison.py")
+        st.switch_page("pages/3_Driver_Compare.py")
 
 with col_tertiary:
     if st.button("TEAM WIKI", use_container_width=True):
         st.switch_page("pages/4_Team_Wiki.py")
 
 render_news_briefing()
+

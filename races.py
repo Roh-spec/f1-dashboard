@@ -7,7 +7,7 @@ from charts import (
     plot_top_2_telemetry,
     plot_tyre_strategy_timeline,
 )
-from design import anime_loading_box, render_top_podium_card
+from ui import anime_loading_box, render_top_podium_card
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 

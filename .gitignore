@@ -14,6 +14,10 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
@@ -31,6 +35,8 @@ logs/
 # Streamlit local config/state
 .streamlit/secrets.toml
 .streamlit/cache/
+.streamlit/credentials.toml
+.streamlit/config.local.toml
 
 # Local data/cache artifacts
 .cache/

@@ -1,7 +1,7 @@
 import streamlit as st
 
 from charts import plot_lap_times, plot_top_2_telemetry
-from design import anime_loading_box, render_top_podium_card
+from ui import anime_loading_box, render_top_podium_card
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
 

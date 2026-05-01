@@ -1,6 +1,6 @@
 import streamlit as st
 
-from design import inject_retro_css
+from ui import inject_retro_css
 from sessions import setup_fastf1_cache
 
 st.set_page_config(page_title="F1 RETRO DASH", layout="wide", initial_sidebar_state="collapsed")
@@ -26,7 +26,7 @@ def render_top_header() -> None:
                     st.switch_page("pages/2_Dashboard.py")
             with nav_3:
                 if st.button("👥 Driver Compare", key="header_nav_driver_compare"):
-                    st.switch_page("pages/3_Driver_Comparison.py")
+                    st.switch_page("pages/3_Driver_Compare.py")
             with nav_4:
                 if st.button("🏎️ Team Wiki", key="header_nav_team_wiki"):
                     st.switch_page("pages/4_Team_Wiki.py")
@@ -37,8 +37,9 @@ def render_top_header() -> None:
 render_top_header()
 page_select = st.Page("pages/1_Race_Select.py", title="Race Select", icon="🏁", default=True)
 page_dashboard = st.Page("pages/2_Dashboard.py", title="Race Analysis", icon="📊")
-page_driver_compare = st.Page("pages/3_Driver_Comparison.py", title="Driver Comparison", icon="👥")
+page_driver_compare = st.Page("pages/3_Driver_Compare.py", title="Driver Comparison", icon="👥")
 page_team_wiki = st.Page("pages/4_Team_Wiki.py", title="Team Wiki", icon="🏎️")
 
 pg = st.navigation([page_select, page_dashboard, page_driver_compare, page_team_wiki])
 pg.run()
+

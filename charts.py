@@ -1,3 +1,11 @@
+"""Shared FastF1 chart rendering helpers.
+
+This module owns the app-wide Matplotlib/FastF1 chart style plus the reusable
+data transformations for telemetry overlays, lap-time traces, position plots,
+and tyre-stint timelines. Rendering pages should call these helpers when they
+need those shared transformations instead of duplicating plotting setup.
+"""
+
 import matplotlib.pyplot as plt
 import fastf1.plotting
 import streamlit as st

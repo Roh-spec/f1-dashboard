@@ -1,6 +1,6 @@
 import streamlit as st
 
-from design import anime_loading_box
+from ui import anime_loading_box
 from sessions import SESSION_LABELS, best_driver_name, format_timing_value, load_session_data
 
 

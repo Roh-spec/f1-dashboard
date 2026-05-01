@@ -22,13 +22,13 @@ A Streamlit dashboard for exploring Formula 1 lap data, telemetry, championship 
 - `app.py`: Entry point for the Streamlit application. Configures the multi-page navigation.
 - `pages/1_Race_Select.py`: User interface for selecting the historical year/specific Grand Prix and viewing motorsport news headlines.
 - `pages/2_Dashboard.py`: Main dashboard view orchestrating the rendering of track info, standings, and sessions.
-- `pages/3_Driver_Comparison.py`: Driver comparison and history page with season-first filtering and championship progression charting.
+- `pages/3_Driver_Compare.py`: Driver comparison and history page with season-first filtering and championship progression charting.
 - `pages/4_Team_Wiki.py`: Team encyclopedia page with season filter, compact team cards, and title history tables.
-- `sessions.py`: Data layer for FastF1 loading, standings, motorsport RSS news, season driver lists, driver dossiers, and chart inputs.
-- `charts.py`: Encapsulates all matplotlib telemetry and track position charts.
-- `circuit_map.py`: Logic for fuzzy-matching and displaying track layout images from the `circuits/` directory.
-- `track_analysis.py`: Contains a database of track facts (length, laps, first race, most wins) and renders the track statistics UI.
-- `design.py`: Custom CSS injection for the retro theme.
+- `sessions.py`: Data layer for FastF1 loading, Ergast-compatible endpoints, Wikipedia summaries, motorsport RSS news, season driver lists, driver dossiers, and chart inputs.
+- `charts.py`: Shared FastF1 chart rendering helpers for telemetry overlays, lap-time traces, position plots, and tyre strategy timelines.
+- `track_analysis.py`: Contains circuit image lookup, circuit map rendering, track facts (length, laps, first race, most wins), and track statistics UI.
+- `ui.py`: Shared Streamlit UI helpers for custom retro cards, loading states, and compact table/card rendering.
+- `.streamlit/config.toml`: Streamlit theme configuration for the app color scheme, monospace font, and minimal toolbar mode.
 - `fps.py`, `qualifying.py`, `races.py`: Specific rendering logic, tables, and fallback UI for Free Practice, Qualifying, and Race sessions.
 
 ## How to Run
@@ -49,8 +49,20 @@ streamlit run app.py
 
 The application caches API requests heavily to improve performance after the initial slow data download. 
 - FastF1 telemetry and timing data is saved locally in the `f1_cache/` and `.fastf1_cache/` directories.
-- Streamlit `@st.cache_data` is used for selected API calls such as schedules, standings, and news feeds.
-- Driver dossier calculations currently prioritize freshness for accuracy and are resolved on demand.
+- Streamlit `@st.cache_data` is used for selected API calls such as schedules, standings, news feeds, Ergast-compatible data, and Wikipedia summaries.
+- Ergast-compatible data is cached for 1 hour.
+- Wikipedia summaries are cached for 24 hours.
+- Motorsport RSS headlines are cached for 30 minutes.
+
+## v2.0 Updates
+
+- Replaced `design.py` with a proper Streamlit theme config in `.streamlit/config.toml`; shared custom UI helpers now live in `ui.py`.
+- Merged circuit map lookup and rendering into `track_analysis.py`, removing the separate `circuit_map.py` module.
+- Added a unified cache layer for Ergast-compatible API calls and Wikipedia summaries with clearer TTLs.
+- Kept `charts.py` as a documented shared chart module because it owns reusable FastF1/Matplotlib styling and chart transformations.
+- Audited RSS usage: the motorsport news feed is consumed by Race Select and remains cached at 30 minutes.
+- Renamed and wired the Driver Compare page as `pages/3_Driver_Compare.py`.
+- Confirmed the local import graph has no circular imports.
 
 ## Common Issues
 

@@ -1,11 +1,9 @@
 import streamlit as st
-import wikipedia
 import pandas as pd
 import matplotlib.pyplot as plt
 from fastf1.exceptions import DataNotLoadedError
 
-from circuit_map import render_circuit_map
-from design import render_standings_bar_card
+from ui import render_standings_bar_card
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
@@ -14,9 +12,10 @@ from sessions import (
     get_driver_standings,
     get_constructor_standings,
     get_schedule,
+    get_track_wiki_summary,
     load_session_data,
 )
-from track_analysis import render_circuit_winners, render_track_analysis
+from track_analysis import render_circuit_map, render_circuit_winners, render_track_analysis
 
 def _format_summary_card(label: str, value: str, note: str) -> str:
     return (
@@ -63,15 +62,8 @@ def render_track_details(year, race_name, event) -> None:
             with st.container(border=True, key="track_archive_panel"):
                 st.markdown("<h3>Track Archives</h3>", unsafe_allow_html=True)
                 circuit_name = event["Location"] + " Grand Prix"
-                try:
-                    wiki_summary = wikipedia.summary(circuit_name, sentences=4)
-                    st.write(f"> {wiki_summary}")
-                except Exception:
-                    try:
-                        wiki_summary = wikipedia.summary(event["EventName"], sentences=4)
-                        st.write(f"> {wiki_summary}")
-                    except Exception:
-                        st.write("> Data unavailable. Unable to load track history.")
+                wiki_summary = get_track_wiki_summary(circuit_name, event["EventName"], sentences=4)
+                st.write(f"> {wiki_summary}")
 
                 render_track_analysis(event)
 
@@ -337,6 +329,68 @@ def render_sessions(year, race_name, event) -> None:
         elif session_name in {"Race", "Sprint"}:
             render_race_session(year, race_name, session_name)
 
+
+def render_page_header_navigation(event, selected_year: int) -> None:
+    prev_event = None
+    next_event = None
+    try:
+        schedule = get_schedule(int(selected_year))
+        season_races = schedule[schedule["EventFormat"] != "testing"].sort_values("RoundNumber")
+        current_round = int(event["RoundNumber"])
+
+        earlier = season_races[season_races["RoundNumber"] < current_round]
+        later = season_races[season_races["RoundNumber"] > current_round]
+
+        if not earlier.empty:
+            prev_event = earlier.iloc[-1]
+        if not later.empty:
+            next_event = later.iloc[0]
+    except Exception:
+        prev_event = None
+        next_event = None
+
+    with st.container(border=True, key="dialog_page_header_nav"):
+        st.markdown(
+            (
+                "<div class='section-ribbon'>"
+                f"<span>{event['EventName']}</span>"
+                f"<span>ROUND {event['RoundNumber']}</span>"
+                f"<span>{event['EventDate'].year}</span>"
+                "</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+
+        left_col, mid_col, right_col = st.columns([1.4, 3.2, 1.4], vertical_alignment="center")
+
+        with left_col:
+            if prev_event is not None and st.button(
+                "⬅️ PREVIOUS RACE",
+                key="race_analysis_top_previous_race",
+                use_container_width=True,
+            ):
+                st.session_state.selected_event = prev_event
+                st.session_state.selected_race = str(prev_event.get("EventName", ""))
+                st.session_state.selected_year = int(selected_year)
+                st.rerun()
+
+        with mid_col:
+            st.markdown(
+                "<p class='section-kicker' style='text-align:center; margin: 0;'>Race Navigation</p>",
+                unsafe_allow_html=True,
+            )
+
+        with right_col:
+            if next_event is not None and st.button(
+                "NEXT RACE ➡️",
+                key="race_analysis_top_next_race",
+                use_container_width=True,
+            ):
+                st.session_state.selected_event = next_event
+                st.session_state.selected_race = str(next_event.get("EventName", ""))
+                st.session_state.selected_year = int(selected_year)
+                st.rerun()
+
 if "selected_event" not in st.session_state:
     st.warning("No archive selected. Please select a race from the Race Select page.")
     if st.button("Go to Race Select"):
@@ -348,13 +402,7 @@ else:
     
     event_sessions = get_event_sessions(event)
 
-    top_nav_col1, top_nav_col2, _ = st.columns([1.2, 1.2, 4])
-    with top_nav_col1:
-        if st.button("🏁 RACE SELECT", key="race_analysis_top_race_select"):
-            st.switch_page("pages/1_Race_Select.py")
-    with top_nav_col2:
-        if st.button("🔄 CHANGE RACE", key="race_analysis_top_change_race"):
-            st.switch_page("pages/1_Race_Select.py")
+    render_page_header_navigation(event, selected_year)
         
     render_event_snapshot(event, event_sessions)
     render_track_details(selected_year, selected_race, event)

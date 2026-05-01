@@ -197,7 +197,7 @@ def load_session_data(year, race_name, session_name):
     return None, None, None
 
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_driver_standings(year, round_num):
     try:
         ergast = Ergast()
@@ -207,7 +207,7 @@ def get_driver_standings(year, round_num):
         return pd.DataFrame()
 
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_constructor_standings(year, round_num):
     try:
         ergast = Ergast()
@@ -348,6 +348,7 @@ def _fetch_json(url):
         return {}
 
 
+@st.cache_data(ttl=3600)
 def _fetch_ergast_path(path):
     for base_url in (ERGAST_BASE_URL, ERGAST_FALLBACK_BASE_URL):
         payload = _fetch_json(f"{base_url}/{path}")
@@ -356,7 +357,7 @@ def _fetch_ergast_path(path):
     return {}
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_driver_directory():
     payload = _fetch_ergast_path("drivers.json?limit=1000")
     drivers = payload.get("MRData", {}).get("DriverTable", {}).get("Drivers", [])
@@ -371,7 +372,7 @@ def get_driver_directory():
     return directory
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_drivers_for_season(season):
     payload = _fetch_ergast_path(f"{int(season)}/results.json?limit=2000")
     races = payload.get("MRData", {}).get("RaceTable", {}).get("Races", [])
@@ -409,7 +410,7 @@ def get_drivers_for_season(season):
     return directory
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_teams_for_season(season):
     payload = _fetch_ergast_path(f"{int(season)}/constructors.json?limit=200")
     constructors = payload.get("MRData", {}).get("ConstructorTable", {}).get("Constructors", [])
@@ -427,7 +428,7 @@ def get_teams_for_season(season):
     return teams
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_constructor_results_history(constructor_id):
     page_limit = 100
     offset = 0
@@ -483,7 +484,7 @@ def get_constructor_results_history(constructor_id):
     return history
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_constructor_season_driver_points(constructor_id, season):
     payload = _fetch_ergast_path(f"{int(season)}/constructors/{constructor_id}/results.json?limit=100")
     races = payload.get("MRData", {}).get("RaceTable", {}).get("Races", [])
@@ -529,7 +530,7 @@ def get_constructor_season_driver_points(constructor_id, season):
     return drivers_df
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_all_wcc_titles():
     payload = _fetch_ergast_path("constructorStandings/1.json?limit=1000")
     standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
@@ -566,7 +567,7 @@ def get_all_wcc_titles():
     return titles
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_all_wdc_titles():
     payload = _fetch_ergast_path("driverStandings/1.json?limit=1000")
     standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
@@ -608,7 +609,7 @@ def get_all_wdc_titles():
     return titles
 
 
-@st.cache_data(ttl=604800)
+@st.cache_data(ttl=86400)
 def get_team_history_blurb(team_name):
     try:
         return wikipedia.summary(f"{team_name} Formula One", sentences=3, auto_suggest=False)
@@ -617,6 +618,19 @@ def get_team_history_blurb(team_name):
             return wikipedia.summary(team_name, sentences=3, auto_suggest=False)
         except Exception:
             return "History unavailable right now."
+
+
+@st.cache_data(ttl=86400)
+def get_track_wiki_summary(primary_title, fallback_title=None, sentences=4):
+    try:
+        return wikipedia.summary(primary_title, sentences=sentences)
+    except Exception:
+        if fallback_title:
+            try:
+                return wikipedia.summary(fallback_title, sentences=sentences)
+            except Exception:
+                pass
+        return "Data unavailable. Unable to load track history."
 
 
 def get_team_wiki_profile(constructor_id, constructor_name, selected_season):
@@ -889,7 +903,7 @@ def get_driver_results_history(driver_id):
     return history
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_season_driver_standings(season):
     payload = _fetch_ergast_path(f"{season}/driverStandings.json")
     standings = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
@@ -911,7 +925,7 @@ def get_season_driver_standings(season):
     return mapping
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=3600)
 def get_season_race_calendar(season):
     payload = _fetch_ergast_path(f"{int(season)}.json?limit=100")
     races = payload.get("MRData", {}).get("RaceTable", {}).get("Races", [])
@@ -1059,7 +1073,7 @@ def get_driver_profile(driver_id):
     }
 
 
-@st.cache_data(ttl=604800)
+@st.cache_data(ttl=86400)
 def get_driver_history_blurb(driver_name):
     try:
         return wikipedia.summary(f"{driver_name} Formula One", sentences=3, auto_suggest=False)
