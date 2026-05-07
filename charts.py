@@ -75,8 +75,11 @@ def plot_top_2_telemetry(session, compact=False):
             st.warning("Could not find valid fastest lap for top drivers.")
             return
 
-        tel_d1 = laps_d1.get_telemetry()
-        tel_d2 = laps_d2.get_telemetry()
+        import fastf1.utils
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            delta_time, tel_d1, tel_d2 = fastf1.utils.delta_time(laps_d1, laps_d2)
     except Exception as e:
         st.warning(f"Telemetry data unavailable: {e}")
         return
@@ -84,14 +87,14 @@ def plot_top_2_telemetry(session, compact=False):
     color_d1 = fastf1.plotting.get_driver_color(driver_1, session)
     color_d2 = fastf1.plotting.get_driver_color(driver_2, session)
 
-    fig_size = (7.6, 5.6) if compact else (10, 8)
-    fig, ax = plt.subplots(3, 1, figsize=fig_size, sharex=True)
+    fig_size = (7.6, 7.0) if compact else (10, 9)
+    fig, ax = plt.subplots(5, 1, figsize=fig_size, sharex=True, gridspec_kw={'height_ratios': [3, 1.5, 1.5, 1.5, 2]})
     _set_retro_style(fig, ax)
 
     ax[0].plot(tel_d1['Distance'], tel_d1['Speed'], color=color_d1, label=driver_1)
     ax[0].plot(tel_d2['Distance'], tel_d2['Speed'], color=color_d2, label=driver_2)
     ax[0].set_ylabel("Speed (km/h)", color='#e5dccb')
-    ax[0].legend(facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb')
+    ax[0].legend(facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb', loc='upper right')
 
     ax[1].plot(tel_d1['Distance'], tel_d1['Throttle'], color=color_d1)
     ax[1].plot(tel_d2['Distance'], tel_d2['Throttle'], color=color_d2)
@@ -100,7 +103,20 @@ def plot_top_2_telemetry(session, compact=False):
     ax[2].plot(tel_d1['Distance'], tel_d1['Brake'], color=color_d1)
     ax[2].plot(tel_d2['Distance'], tel_d2['Brake'], color=color_d2)
     ax[2].set_ylabel("Brake", color='#e5dccb')
-    ax[2].set_xlabel("Distance (m)", color='#e5dccb')
+    ax[2].set_yticks([0, 1])
+    ax[2].set_yticklabels(['False', 'True'], color='#e5dccb')
+
+    ax[3].plot(tel_d1['Distance'], tel_d1['nGear'], color=color_d1)
+    ax[3].plot(tel_d2['Distance'], tel_d2['nGear'], color=color_d2)
+    ax[3].set_ylabel("Gear", color='#e5dccb')
+    ax[3].set_yticks(range(1, 9))
+
+    ax[4].plot(tel_d1['Distance'], delta_time, color='#e5dccb', alpha=0.8)
+    ax[4].axhline(0, color='#6f675b', linestyle='--', linewidth=0.8)
+    ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time < 0), color=color_d1, alpha=0.3)
+    ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time > 0), color=color_d2, alpha=0.3)
+    ax[4].set_ylabel(f"Δ {driver_1}-{driver_2} (s)", color='#e5dccb')
+    ax[4].set_xlabel("Distance (m)", color='#e5dccb')
 
     event_name = session.event.EventName if session.event is not None else "Session"
     fig.suptitle(f"{event_name} - {session.name}\n{driver_1} vs {driver_2} Fastest Lap Telemetry", color='#fbf7ee', family='monospace')
@@ -327,8 +343,11 @@ def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifyi
             st.warning(f"Could not find valid fastest lap for {driver} in both sessions.")
             return
 
-        tel1 = lap1.get_telemetry()
-        tel2 = lap2.get_telemetry()
+        import fastf1.utils
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            delta_time, tel1, tel2 = fastf1.utils.delta_time(lap1, lap2)
     except Exception as e:
         st.warning(f"Telemetry data unavailable for {driver}: {e}")
         return
@@ -341,14 +360,14 @@ def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifyi
         
     color2 = '#8f9cb0' # Muted color for the second session to distinguish
 
-    fig_size = (7.6, 5.6) if compact else (10, 8)
-    fig, ax = plt.subplots(3, 1, figsize=fig_size, sharex=True)
+    fig_size = (7.6, 7.0) if compact else (10, 9)
+    fig, ax = plt.subplots(5, 1, figsize=fig_size, sharex=True, gridspec_kw={'height_ratios': [3, 1.5, 1.5, 1.5, 2]})
     _set_retro_style(fig, ax)
 
     ax[0].plot(tel1['Distance'], tel1['Speed'], color=color1, label=f"{name1} Fastest Lap")
     ax[0].plot(tel2['Distance'], tel2['Speed'], color=color2, label=f"{name2} Fastest Lap")
     ax[0].set_ylabel("Speed (km/h)", color='#e5dccb')
-    ax[0].legend(facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb')
+    ax[0].legend(facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb', loc='upper right')
 
     ax[1].plot(tel1['Distance'], tel1['Throttle'], color=color1)
     ax[1].plot(tel2['Distance'], tel2['Throttle'], color=color2)
@@ -357,7 +376,20 @@ def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifyi
     ax[2].plot(tel1['Distance'], tel1['Brake'], color=color1)
     ax[2].plot(tel2['Distance'], tel2['Brake'], color=color2)
     ax[2].set_ylabel("Brake", color='#e5dccb')
-    ax[2].set_xlabel("Distance (m)", color='#e5dccb')
+    ax[2].set_yticks([0, 1])
+    ax[2].set_yticklabels(['False', 'True'], color='#e5dccb')
+
+    ax[3].plot(tel1['Distance'], tel1['nGear'], color=color1)
+    ax[3].plot(tel2['Distance'], tel2['nGear'], color=color2)
+    ax[3].set_ylabel("Gear", color='#e5dccb')
+    ax[3].set_yticks(range(1, 9))
+
+    ax[4].plot(tel1['Distance'], delta_time, color='#e5dccb', alpha=0.8)
+    ax[4].axhline(0, color='#6f675b', linestyle='--', linewidth=0.8)
+    ax[4].fill_between(tel1['Distance'], delta_time, 0, where=(delta_time < 0), color=color1, alpha=0.3)
+    ax[4].fill_between(tel1['Distance'], delta_time, 0, where=(delta_time > 0), color=color2, alpha=0.3)
+    ax[4].set_ylabel(f"Δ {name1}-{name2} (s)", color='#e5dccb')
+    ax[4].set_xlabel("Distance (m)", color='#e5dccb')
 
     event_name = session1.event.EventName if session1.event is not None else "Session"
     fig.suptitle(f"{event_name}\n{driver} - {name1} vs {name2} Fastest Lap Telemetry", color='#fbf7ee', family='monospace')
