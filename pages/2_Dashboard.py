@@ -16,7 +16,7 @@ from sessions import (
     load_session_data,
 )
 from track_analysis import render_circuit_map, render_circuit_winners, render_track_analysis
-
+from charts import plot_driver_telemetry_comparison
 def _format_summary_card(label: str, value: str, note: str) -> str:
     return (
         f"<div class='summary-card'>"
@@ -315,6 +315,45 @@ def render_end_race_bar(event, selected_year) -> None:
                     unsafe_allow_html=True,
                 )
 
+def render_qualifying_vs_race_pace_overlay(year, race_name) -> None:
+    with st.container(border=True, key="dialog_q_vs_r_pace"):
+        st.markdown("<p class='section-kicker'>Pace Analysis</p>", unsafe_allow_html=True)
+        st.markdown("<h2>Qualifying vs Race Pace (Top 3 Qualifiers)</h2>", unsafe_allow_html=True)
+
+        q_session, _, _ = load_session_data(year, race_name, "Qualifying")
+        if q_session is None:
+            q_session, _, _ = load_session_data(year, race_name, "Sprint Qualifying")
+            
+        r_session, _, _ = load_session_data(year, race_name, "Race")
+        if r_session is None:
+            r_session, _, _ = load_session_data(year, race_name, "Sprint")
+
+        q_results = None
+        if q_session is not None and hasattr(q_session, 'results'):
+            q_results = q_session.results
+        
+        if q_session is None or r_session is None or q_results is None or q_results.empty:
+            st.warning("Insufficient data to compare qualifying and race pace.")
+            return
+
+        top_3 = q_results.head(3)
+        if "Abbreviation" not in top_3:
+            st.warning("Driver abbreviation missing from results.")
+            return
+            
+        drivers = top_3["Abbreviation"].tolist()
+        
+        if not drivers:
+            st.warning("No drivers found in qualifying top 3.")
+            return
+            
+        tabs = st.tabs(drivers)
+        for i, drv in enumerate(drivers):
+            with tabs[i]:
+                _, col, _ = st.columns([1, 4, 1])
+                with col:
+                    plot_driver_telemetry_comparison(drv, q_session, r_session, "Qualifying", "Race", compact=True)
+
 def render_sessions(year, race_name, event) -> None:
     event_sessions = get_event_sessions(event)
     practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
@@ -331,6 +370,12 @@ def render_sessions(year, race_name, event) -> None:
             render_qualifying_session(year, race_name, session_name)
         elif session_name in {"Race", "Sprint"}:
             render_race_session(year, race_name, session_name)
+
+    has_q = any(s in {"Qualifying", "Sprint Qualifying", "Sprint Shootout"} for s in result_sessions)
+    has_r = any(s in {"Race", "Sprint"} for s in result_sessions)
+    if has_q and has_r:
+        render_qualifying_vs_race_pace_overlay(year, race_name)
+
 
 
 def render_page_header_navigation(event, selected_year: int) -> None:

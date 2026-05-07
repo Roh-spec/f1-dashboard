@@ -7,6 +7,8 @@ A Streamlit dashboard for exploring Formula 1 lap data, telemetry, championship 
 - **Multi-page Architecture**: Separate pages for Race Select, the main Dashboard, and Driver Comparison & History.
 - **Motorsport News Briefing**: A live summary section on the main page that aggregates recent headlines from multiple motorsport RSS feeds.
 - **Session Telemetry**: Detailed matplotlib telemetry charts (Speed, Throttle, Brake) comparing the top drivers for qualifying and race sessions.
+- **Pace Analysis & Telemetry**: Dedicated tabs for the top 3 qualifiers comparing their fastest Qualifying lap directly against their fastest Race lap using detailed telemetry graphs.
+- **Session Intelligence & Incident Timelines**: Real-time integration of race control messages mapping safety cars, red flags, penalties, and investigations directly onto lap pace graphs and standalone incident tables.
 - **Lap-by-Lap Position Charts**: Visualization of track position, pit stops, and overtakes throughout the race.
 - **Circuit Intelligence**: Track map displays, historical stats (first F1 race, length, laps, total distance), and Wikipedia excerpts for the selected Grand Prix. Handles layout changes across different years (e.g. Qatar).
 - **Championship Standings**: World Driver and Constructor Championship standings updated dynamically for the selected race round.
@@ -15,7 +17,7 @@ A Streamlit dashboard for exploring Formula 1 lap data, telemetry, championship 
 - **Year-Scoped Driver Selection**: Driver comparison is filtered by selected season first, then drivers are selected from that season's participants.
 - **Interactive Championship Progression Chart**: Round-by-round championship points comparison for two drivers in the selected season, with interactive tooltips and chart fallback behavior.
 - **Team Wiki (INCOMPLETE)**: Alphabetical constructor encyclopedia with debut, leader, drivers, races, previous names, and WDC/WCC title-year breakdowns.
-- **Retro Design System**: High-contrast, blocky layouts with a warm `#e5dccb` text on `#211d18` ink background to simulate a vintage paper or 8-bit timing screen.
+- **Retro Design System**: High-contrast, blocky layouts with a warm `#e5dccb` text on `#211d18` ink background to simulate a vintage paper or 8-bit timing screen. Complete with styled data tables and a seamless top navigation bar.
 
 ## Project Structure
 

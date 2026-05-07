@@ -46,3 +46,13 @@ logs/
 # Optional: system files
 .DS_Store
 Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment Variables
+.env
+.env.local

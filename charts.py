@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import fastf1.plotting
 import streamlit as st
 import pandas as pd
+import numpy as np
 from matplotlib.patches import Patch
 
 # Use fastf1 setup
@@ -309,3 +310,58 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
     fig.suptitle(f"{event_name} - {session.name} Tyre Strategy Timeline", color="#fbf7ee", family="monospace")
     fig.tight_layout()
     st.pyplot(fig)
+
+def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifying", name2="Race", compact=False):
+    laps1 = _safe_laps(session1)
+    laps2 = _safe_laps(session2)
+
+    if laps1 is None or laps1.empty or laps2 is None or laps2.empty:
+        st.warning(f"Lap data missing for {driver}.")
+        return
+
+    try:
+        lap1 = laps1.pick_driver(driver).pick_fastest()
+        lap2 = laps2.pick_driver(driver).pick_fastest()
+
+        if pd.isna(lap1['LapTime']) or pd.isna(lap2['LapTime']):
+            st.warning(f"Could not find valid fastest lap for {driver} in both sessions.")
+            return
+
+        tel1 = lap1.get_telemetry()
+        tel2 = lap2.get_telemetry()
+    except Exception as e:
+        st.warning(f"Telemetry data unavailable for {driver}: {e}")
+        return
+
+    # Use driver color for session1, and a muted/contrasting color for session2
+    try:
+        color1 = fastf1.plotting.get_driver_color(driver, session1)
+    except Exception:
+        color1 = '#e5dccb'
+        
+    color2 = '#8f9cb0' # Muted color for the second session to distinguish
+
+    fig_size = (7.6, 5.6) if compact else (10, 8)
+    fig, ax = plt.subplots(3, 1, figsize=fig_size, sharex=True)
+    _set_retro_style(fig, ax)
+
+    ax[0].plot(tel1['Distance'], tel1['Speed'], color=color1, label=f"{name1} Fastest Lap")
+    ax[0].plot(tel2['Distance'], tel2['Speed'], color=color2, label=f"{name2} Fastest Lap")
+    ax[0].set_ylabel("Speed (km/h)", color='#e5dccb')
+    ax[0].legend(facecolor='#211d18', edgecolor='#6f675b', labelcolor='#e5dccb')
+
+    ax[1].plot(tel1['Distance'], tel1['Throttle'], color=color1)
+    ax[1].plot(tel2['Distance'], tel2['Throttle'], color=color2)
+    ax[1].set_ylabel("Throttle %", color='#e5dccb')
+
+    ax[2].plot(tel1['Distance'], tel1['Brake'], color=color1)
+    ax[2].plot(tel2['Distance'], tel2['Brake'], color=color2)
+    ax[2].set_ylabel("Brake", color='#e5dccb')
+    ax[2].set_xlabel("Distance (m)", color='#e5dccb')
+
+    event_name = session1.event.EventName if session1.event is not None else "Session"
+    fig.suptitle(f"{event_name}\n{driver} - {name1} vs {name2} Fastest Lap Telemetry", color='#fbf7ee', family='monospace')
+    fig.tight_layout()
+    st.pyplot(fig)
+
+
