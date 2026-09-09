@@ -56,6 +56,58 @@ def _ensure_telemetry_loaded(session):
         return False
 
 
+def _pick_driver_laps(laps, drv):
+    if laps is None:
+        return pd.DataFrame()
+    if hasattr(laps, "pick_driver"):
+        try:
+            res = laps.pick_driver(drv)
+            if res is not None and not res.empty:
+                return res
+        except Exception:
+            pass
+    if isinstance(laps, pd.DataFrame) and "Driver" in laps:
+        return laps[laps["Driver"] == drv]
+    return pd.DataFrame()
+
+
+def _pick_quicklaps(laps):
+    if laps is None:
+        return pd.DataFrame()
+    if hasattr(laps, "pick_quicklaps"):
+        try:
+            res = laps.pick_quicklaps()
+            if res is not None and not res.empty:
+                return res
+        except Exception:
+            pass
+    if isinstance(laps, pd.DataFrame) and "LapTime" in laps:
+        valid = laps.dropna(subset=["LapTime"]).copy()
+        if not valid.empty:
+            if len(valid) >= 5:
+                med = valid["LapTime"].median()
+                return valid[valid["LapTime"] <= med * 1.15]
+            return valid
+    return laps
+
+
+def _pick_fastest(laps):
+    if laps is None or (hasattr(laps, "empty") and laps.empty):
+        return None
+    if hasattr(laps, "pick_fastest"):
+        try:
+            res = laps.pick_fastest()
+            if res is not None and not pd.isna(res.get("LapTime")):
+                return res
+        except Exception:
+            pass
+    if isinstance(laps, pd.DataFrame) and "LapTime" in laps:
+        valid = laps.dropna(subset=["LapTime"])
+        if not valid.empty:
+            return valid.loc[valid["LapTime"].idxmin()]
+    return None
+
+
 def plot_top_2_telemetry(session, compact=False):
     laps = _safe_laps(session)
     if laps is None or laps.empty:
@@ -66,7 +118,7 @@ def plot_top_2_telemetry(session, compact=False):
     if results is not None and not results.empty and "Abbreviation" in results:
         top_2_drivers = results.iloc[:2]['Abbreviation'].dropna().tolist()
     else:
-        top_laps = laps.pick_quicklaps().sort_values(by='LapTime').dropna(subset=['LapTime'])
+        top_laps = _pick_quicklaps(laps).sort_values(by='LapTime').dropna(subset=['LapTime'])
         if top_laps.empty:
             st.warning("No quick laps available.")
             return
@@ -79,12 +131,16 @@ def plot_top_2_telemetry(session, compact=False):
     driver_1, driver_2 = top_2_drivers[0], top_2_drivers[1]
 
     try:
-        laps_d1 = laps.pick_driver(driver_1).pick_fastest()
-        laps_d2 = laps.pick_driver(driver_2).pick_fastest()
+        color_d1 = get_team_color(driver_1, default="#ff8000")
+        color_d2 = get_team_color(driver_2, default="#1e41ff")
+        if str(color_d1).lower() == str(color_d2).lower():
+            color_d2 = "#ffffff" if color_d1 != "#ffffff" else "#f5a623"
 
-        if pd.isna(laps_d1['LapTime']) or pd.isna(laps_d2['LapTime']):
-            st.warning("Could not find valid fastest lap for top drivers.")
-            return
+        laps_d1 = _pick_fastest(_pick_driver_laps(laps, driver_1))
+        laps_d2 = _pick_fastest(_pick_driver_laps(laps, driver_2))
+
+        if laps_d1 is None or laps_d2 is None or pd.isna(laps_d1['LapTime']) or pd.isna(laps_d2['LapTime']):
+            raise ValueError("Could not find fastest lap for top drivers.")
 
         _ensure_telemetry_loaded(session)
         import fastf1.utils
@@ -92,63 +148,70 @@ def plot_top_2_telemetry(session, compact=False):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             delta_time, tel_d1, tel_d2 = fastf1.utils.delta_time(laps_d1, laps_d2)
-    except Exception as e:
-        st.info(f"Detailed 10Hz telemetry overlay unavailable ({e}). Lap pace and race traces are displayed below.")
+
+        fig_size = (7.6, 6.8) if compact else (10, 8.5)
+        fig, ax = plt.subplots(5, 1, figsize=fig_size, sharex=True, gridspec_kw={'height_ratios': [3, 1.5, 1.5, 1.5, 2]})
+        _set_retro_style(fig, ax)
+
+        ax[0].plot(tel_d1['Distance'], tel_d1['Speed'], color=color_d1, label=driver_1, linewidth=1.8)
+        ax[0].plot(tel_d2['Distance'], tel_d2['Speed'], color=color_d2, label=driver_2, linewidth=1.8)
+        ax[0].set_ylabel("Speed (km/h)", color='#f0f3f6', fontsize=9)
+        ax[0].legend(facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', loc='upper right', fontsize='small')
+
+        ax[1].plot(tel_d1['Distance'], tel_d1['Throttle'], color=color_d1, linewidth=1.5)
+        ax[1].plot(tel_d2['Distance'], tel_d2['Throttle'], color=color_d2, linewidth=1.5)
+        ax[1].set_ylabel("Throttle %", color='#f0f3f6', fontsize=9)
+
+        ax[2].plot(tel_d1['Distance'], tel_d1['Brake'], color=color_d1, linewidth=1.5)
+        ax[2].plot(tel_d2['Distance'], tel_d2['Brake'], color=color_d2, linewidth=1.5)
+        ax[2].set_ylabel("Brake", color='#f0f3f6', fontsize=9)
+        ax[2].set_yticks([0, 1])
+        ax[2].set_yticklabels(['OFF', 'ON'], color='#f0f3f6', fontsize=8)
+
+        ax[3].plot(tel_d1['Distance'], tel_d1['nGear'], color=color_d1, linewidth=1.5)
+        ax[3].plot(tel_d2['Distance'], tel_d2['nGear'], color=color_d2, linewidth=1.5)
+        ax[3].set_ylabel("Gear", color='#f0f3f6', fontsize=9)
+        ax[3].set_yticks(range(1, 9))
+
+        ax[4].plot(tel_d1['Distance'], delta_time, color='#e10600', alpha=0.9, linewidth=1.5)
+        ax[4].axhline(0, color='#374151', linestyle='--', linewidth=0.8)
+        ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time < 0), color=color_d1, alpha=0.35)
+        ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time > 0), color=color_d2, alpha=0.35)
+        ax[4].set_ylabel(f"Δ {driver_1}-{driver_2} (s)", color='#f0f3f6', fontsize=9)
+        ax[4].set_xlabel("Distance (m)", color='#f0f3f6', fontsize=9)
+
+        event_name = session.event.EventName if session.event is not None else "Session"
+        fig.suptitle(f"{event_name} - {session.name}\n{driver_1} vs {driver_2} Fastest Lap Telemetry", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
+        fig.tight_layout()
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
         return
-
-    try:
-        color_d1 = fastf1.plotting.get_driver_color(driver_1, session)
     except Exception:
-        color_d1 = None
-    if not color_d1:
-        color_d1 = get_team_color(driver_1, default="#ff8000")
+        # Fallback to head-to-head lap pace comparison across all race laps
+        d1_laps = _pick_quicklaps(_pick_driver_laps(laps, driver_1)).dropna(subset=['LapTime', 'LapNumber'])
+        d2_laps = _pick_quicklaps(_pick_driver_laps(laps, driver_2)).dropna(subset=['LapTime', 'LapNumber'])
+        if not d1_laps.empty and not d2_laps.empty:
+            fig_size = (7.6, 4.4) if compact else (10, 5.2)
+            fig, ax = plt.subplots(figsize=fig_size)
+            _set_retro_style(fig, [ax])
+            c1 = get_team_color(driver_1, default="#ff8000")
+            c2 = get_team_color(driver_2, default="#1e41ff")
+            if str(c1).lower() == str(c2).lower():
+                c2 = "#ffffff" if c1 != "#ffffff" else "#f5a623"
+            ax.plot(d1_laps['LapNumber'], d1_laps['LapTime'].dt.total_seconds(), color=c1, label=f"{driver_1} Pace", linewidth=2.0, marker='o', markersize=3)
+            ax.plot(d2_laps['LapNumber'], d2_laps['LapTime'].dt.total_seconds(), color=c2, label=f"{driver_2} Pace", linewidth=2.0, marker='s', markersize=3)
+            ax.set_xlabel("Lap Number", color='#f0f3f6', fontsize=9)
+            ax.set_ylabel("Lap Time (s)", color='#f0f3f6', fontsize=9)
+            event_name = session.event.EventName if hasattr(session, 'event') and session.event is not None else "Session"
+            ax.set_title(f"{event_name} - {driver_1} vs {driver_2} Head-to-Head Pace", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
+            ax.legend(facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', loc='upper right')
+            fig.tight_layout()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
+            return
 
-    try:
-        color_d2 = fastf1.plotting.get_driver_color(driver_2, session)
-    except Exception:
-        color_d2 = None
-    if not color_d2:
-        color_d2 = get_team_color(driver_2, default="#1e41ff")
-
-    if str(color_d1).lower() == str(color_d2).lower():
-        color_d2 = "#ffffff" if color_d1 != "#ffffff" else "#f5a623"
-
-    fig_size = (7.6, 6.8) if compact else (10, 8.5)
-    fig, ax = plt.subplots(5, 1, figsize=fig_size, sharex=True, gridspec_kw={'height_ratios': [3, 1.5, 1.5, 1.5, 2]})
-    _set_retro_style(fig, ax)
-
-    ax[0].plot(tel_d1['Distance'], tel_d1['Speed'], color=color_d1, label=driver_1, linewidth=1.8)
-    ax[0].plot(tel_d2['Distance'], tel_d2['Speed'], color=color_d2, label=driver_2, linewidth=1.8)
-    ax[0].set_ylabel("Speed (km/h)", color='#f0f3f6', fontsize=9)
-    ax[0].legend(facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', loc='upper right', fontsize='small')
-
-    ax[1].plot(tel_d1['Distance'], tel_d1['Throttle'], color=color_d1, linewidth=1.5)
-    ax[1].plot(tel_d2['Distance'], tel_d2['Throttle'], color=color_d2, linewidth=1.5)
-    ax[1].set_ylabel("Throttle %", color='#f0f3f6', fontsize=9)
-
-    ax[2].plot(tel_d1['Distance'], tel_d1['Brake'], color=color_d1, linewidth=1.5)
-    ax[2].plot(tel_d2['Distance'], tel_d2['Brake'], color=color_d2, linewidth=1.5)
-    ax[2].set_ylabel("Brake", color='#f0f3f6', fontsize=9)
-    ax[2].set_yticks([0, 1])
-    ax[2].set_yticklabels(['OFF', 'ON'], color='#f0f3f6', fontsize=8)
-
-    ax[3].plot(tel_d1['Distance'], tel_d1['nGear'], color=color_d1, linewidth=1.5)
-    ax[3].plot(tel_d2['Distance'], tel_d2['nGear'], color=color_d2, linewidth=1.5)
-    ax[3].set_ylabel("Gear", color='#f0f3f6', fontsize=9)
-    ax[3].set_yticks(range(1, 9))
-
-    ax[4].plot(tel_d1['Distance'], delta_time, color='#e10600', alpha=0.9, linewidth=1.5)
-    ax[4].axhline(0, color='#374151', linestyle='--', linewidth=0.8)
-    ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time < 0), color=color_d1, alpha=0.35)
-    ax[4].fill_between(tel_d1['Distance'], delta_time, 0, where=(delta_time > 0), color=color_d2, alpha=0.35)
-    ax[4].set_ylabel(f"Δ {driver_1}-{driver_2} (s)", color='#f0f3f6', fontsize=9)
-    ax[4].set_xlabel("Distance (m)", color='#f0f3f6', fontsize=9)
-
-    event_name = session.event.EventName if session.event is not None else "Session"
-    fig.suptitle(f"{event_name} - {session.name}\n{driver_1} vs {driver_2} Fastest Lap Telemetry", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
-    fig.tight_layout()
-    st.pyplot(fig, use_container_width=True)
-    plt.close(fig)
+        st.info("Detailed 10Hz telemetry overlay unavailable. Lap pace and race traces are displayed below.")
+        return
 
 
 def plot_lap_times(session, compact=False):
@@ -168,18 +231,15 @@ def plot_lap_times(session, compact=False):
     _set_retro_style(fig, [ax])
 
     for drv in drivers:
-        drv_laps = laps.pick_driver(drv).pick_quicklaps()
+        drv_laps = _pick_quicklaps(_pick_driver_laps(laps, drv))
         if not drv_laps.empty:
-            try:
-                color = fastf1.plotting.get_driver_color(drv, session)
-            except Exception:
-                color = '#e10600'
+            color = get_team_color(drv)
             ax.plot(drv_laps['LapNumber'], drv_laps['LapTime'].dt.total_seconds(), color=color, label=drv, alpha=0.85, linewidth=1.4)
 
     ax.set_xlabel("Lap Number", color='#f0f3f6', fontsize=9)
     ax.set_ylabel("Lap Time (s)", color='#f0f3f6', fontsize=9)
 
-    event_name = session.event.EventName if session.event is not None else "Session"
+    event_name = session.event.EventName if hasattr(session, 'event') and session.event is not None else "Session"
     fig.suptitle(f"{event_name} - {session.name} Lap Times", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
 
     ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', fontsize='x-small', framealpha=0.95)
@@ -205,17 +265,10 @@ def plot_driver_positions(session, compact=False):
     _set_retro_style(fig, [ax])
 
     for drv in drivers:
-        drv_laps = laps.pick_driver(drv)
+        drv_laps = _pick_driver_laps(laps, drv)
         drv_laps = drv_laps.dropna(subset=['Position'])
         if not drv_laps.empty:
-            try:
-                from ui import get_team_color
-                color = get_team_color(drv)
-            except Exception:
-                try:
-                    color = fastf1.plotting.get_driver_color(drv, session)
-                except Exception:
-                    color = '#e10600'
+            color = get_team_color(drv)
             ax.plot(drv_laps['LapNumber'], drv_laps['Position'], color=color, label=drv, alpha=0.85, linewidth=1.8)
 
     max_pos = min(22, max(20, len(drivers)))
@@ -225,7 +278,7 @@ def plot_driver_positions(session, compact=False):
     ax.set_xlabel("Lap Number", color='#f0f3f6', fontsize=9)
     ax.set_ylabel("Position", color='#f0f3f6', fontsize=9)
 
-    event_name = session.event.EventName if session.event is not None else "Session"
+    event_name = session.event.EventName if hasattr(session, 'event') and session.event is not None else "Session"
     fig.suptitle(f"{event_name} - {session.name} Track Positions", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
 
     ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', fontsize='x-small', framealpha=0.95)
@@ -242,12 +295,22 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
 
     laps = source_laps.copy()
     required = {"Driver", "Stint", "Compound", "LapNumber"}
-    if not required.issubset(set(laps.columns)):
-        st.warning("Tyre strategy data unavailable for this session.")
+    if not required.issubset(set(laps.columns)) or (laps["Compound"] == "UNKNOWN").all():
+        st.markdown(
+            """
+            <div style="background: #161b22; border: 1px solid #262c36; border-left: 3px solid #e10600; padding: 14px 18px; margin-top: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #f5a623; font-weight: 700; letter-spacing: 0.08em;">STRATEGY ARCHIVE // NOTICE</span>
+                <p style="color: #c9d1d9; font-size: 0.88rem; margin: 4px 0 0 0;">Tyre compound telemetry is recorded for 2018+ digital live timing sessions. Lap times and driver position traces are fully displayed above.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         return
 
     laps = laps.dropna(subset=["Driver", "Stint", "LapNumber"]).copy()
     if laps.empty:
+        st.warning("Tyre strategy data unavailable for this session.")
+        return
         st.warning("Tyre strategy data unavailable for this session.")
         return
 
@@ -368,10 +431,10 @@ def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifyi
         return
 
     try:
-        lap1 = laps1.pick_driver(driver).pick_fastest()
-        lap2 = laps2.pick_driver(driver).pick_fastest()
+        lap1 = _pick_fastest(_pick_driver_laps(laps1, driver))
+        lap2 = _pick_fastest(_pick_driver_laps(laps2, driver))
 
-        if pd.isna(lap1['LapTime']) or pd.isna(lap2['LapTime']):
+        if lap1 is None or lap2 is None or pd.isna(lap1['LapTime']) or pd.isna(lap2['LapTime']):
             st.warning(f"Could not find valid fastest lap for {driver} in both sessions.")
             return
 

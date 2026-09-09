@@ -40,28 +40,40 @@ def build_fastest_lap_table(laps, results):
     return table
 
 
-def render_fp_card(session_name, results, laps):
+def render_fp_card(session_name, results, laps, year=None):
     label = SESSION_LABELS.get(session_name, session_name)
     table = build_fastest_lap_table(laps, results)
 
     if table is None or table.empty:
         driver_count = 0 if results is None or results.empty else len(results)
         detail = (
-            f"{driver_count} drivers loaded"
+            f"{driver_count} Drivers Registered"
             if driver_count
-            else "Session archive unavailable"
+            else "Session Archive Unavailable"
+        )
+        timing_status = (
+            "Pre-2018 Digital Telemetry Limit"
+            if year and int(year) < 2018
+            else "Session Concluded (Digital Timing Offline)"
         )
         st.markdown(
             f"""
-            <div class="practice-card" style="border-top: 3px solid #e10600;">
-                <p class="practice-title">{label}</p>
+            <div class="practice-card" style="border-top: 3px solid #e10600; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="practice-title">{label}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; font-weight: 700; color: #8b949e; background: rgba(255,255,255,0.04); border: 1px solid #262c36; padding: 2px 7px; text-transform: uppercase;">ENTRY ARCHIVE</span>
+                </div>
                 <p class="practice-stat">
-                    <span class="practice-label" style="color: #e10600;">Timing</span>
-                    Unsupported archive
+                    <span class="practice-label" style="color: #8b949e; font-weight: 700;">Status</span>
+                    <strong style="color: #f0f3f6; font-size: 1.0rem;">Official Session Archive</strong>
                 </p>
                 <p class="practice-stat">
-                    <span class="practice-label" style="color: #e10600;">Entry List</span>
-                    {detail}
+                    <span class="practice-label" style="color: #8b949e; font-weight: 700;">Entry List</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; color: #f0f3f6; font-weight: 700; font-size: 1.0rem;">{detail}</span>
+                </p>
+                <p class="practice-stat">
+                    <span class="practice-label" style="color: #8b949e; font-weight: 700;">Telemetry Feed</span>
+                    <span style="color: #8b949e; font-size: 0.85rem;">{timing_status}</span>
                 </p>
             </div>
             """,
@@ -104,7 +116,7 @@ def render_fp_card(session_name, results, laps):
     )
 
 
-def render_fp_sessions(year, race_name, practice_sessions):
+def render_fp_sessions(year, race_name, practice_sessions, round_num=None):
     if not practice_sessions:
         return
 
@@ -119,5 +131,5 @@ def render_fp_sessions(year, race_name, practice_sessions):
         for column, session_name in zip(columns, practice_sessions):
             with column:
                 with anime_loading_box(f"Loading {SESSION_LABELS.get(session_name, session_name).upper()} data..."):
-                    session, results, laps = load_session_data(year, race_name, session_name)
-                render_fp_card(session_name, results, laps)
+                    session, results, laps = load_session_data(year, race_name, session_name, round_num=round_num)
+                render_fp_card(session_name, results, laps, year=year)

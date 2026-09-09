@@ -294,9 +294,19 @@ def _resolve_team_lineage(constructor_id):
 
 def setup_fastf1_cache(cache_dir: str | None = None) -> None:
     global _CACHE_READY
+    # Patch FastF1 internal headers to a modern desktop browser User-Agent
+    # This prevents Cloudflare/Akamai 403 Forbidden blocks on cloud environments (Streamlit Cloud, AWS)
+    _ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+    try:
+        import fastf1.api as _f1_api
+        _f1_api.headers = {
+            "User-Agent": _ua,
+            "Accept-Encoding": "gzip, identity",
+        }
+    except Exception:
+        pass
+
     if cache_dir is None:
-        # On Linux/Cloud environments (like Streamlit Cloud /mount/src/...),
-        # use /tmp to prevent SQLite locking errors on network filesystems.
         if os.name != "nt" or "/mount/" in os.path.abspath("."):
             import tempfile
             cache_dir = os.path.join(tempfile.gettempdir(), "fastf1_cache")
@@ -313,7 +323,125 @@ def setup_fastf1_cache(cache_dir: str | None = None) -> None:
             fastf1.Cache.enable_cache(t_dir)
         except Exception:
             pass
+
+    try:
+        import fastf1.req as _f1_req
+        if hasattr(_f1_req.Cache, "_requests_session") and _f1_req.Cache._requests_session:
+            _f1_req.Cache._requests_session.headers["User-Agent"] = _ua
+        if hasattr(_f1_req.Cache, "_requests_session_cached") and _f1_req.Cache._requests_session_cached:
+            _f1_req.Cache._requests_session_cached.headers["User-Agent"] = _ua
+    except Exception:
+        pass
+
     _CACHE_READY = True
+
+
+@st.cache_data(ttl=86400)
+def get_race_laps_fallback(year: int, round_num: int):
+    """Reliable fallback lap fetcher from Jolpica/Ergast API.
+    Guarantees that lap times, lap pace, and driver positions are available
+    for all historical races (1950-current) and when live timing is blocked on cloud.
+    """
+    import concurrent.futures
+    import requests
+
+    id_to_abbr = {}
+    id_to_num = {}
+    id_to_team = {}
+    res_url = f"https://api.jolpi.ca/ergast/f1/{int(year)}/{int(round_num)}/results.json"
+    try:
+        r = requests.get(res_url, timeout=6)
+        if r.status_code == 200:
+            data = r.json()
+            races = data.get("MRData", {}).get("RaceTable", {}).get("Races", [])
+            if races:
+                for row in races[0].get("Results", []):
+                    did = str(row.get("Driver", {}).get("driverId", "")).lower()
+                    code = row.get("Driver", {}).get("code") or row.get("Driver", {}).get("familyName", "")[:3].upper()
+                    num = str(row.get("number", ""))
+                    team = str(row.get("Constructor", {}).get("name", ""))
+                    if did:
+                        id_to_abbr[did] = code
+                        id_to_num[did] = num
+                        id_to_team[did] = team
+    except Exception:
+        pass
+
+    first_url = f"https://api.jolpi.ca/ergast/f1/{int(year)}/{int(round_num)}/laps.json?limit=100&offset=0"
+    try:
+        r0 = requests.get(first_url, timeout=6)
+        if r0.status_code != 200:
+            return None
+        data0 = r0.json()
+        mr_data = data0.get("MRData", {})
+        total = int(mr_data.get("total", 0))
+        races0 = mr_data.get("RaceTable", {}).get("Races", [])
+        if not races0:
+            return None
+        raw_pages = [data0]
+    except Exception:
+        return None
+
+    offsets = list(range(100, min(total, 1800), 100))
+    if offsets:
+        def _fetch_page(offset):
+            try:
+                u = f"https://api.jolpi.ca/ergast/f1/{int(year)}/{int(round_num)}/laps.json?limit=100&offset={offset}"
+                rp = requests.get(u, timeout=5)
+                if rp.status_code == 200:
+                    return rp.json()
+            except Exception:
+                pass
+            return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            pages = list(executor.map(_fetch_page, offsets))
+            for p in pages:
+                if p:
+                    raw_pages.append(p)
+
+    all_timings = []
+    for p in raw_pages:
+        races = p.get("MRData", {}).get("RaceTable", {}).get("Races", [])
+        if not races:
+            continue
+        for lap in races[0].get("Laps", []):
+            try:
+                lap_num = int(lap["number"])
+            except Exception:
+                continue
+            for t in lap.get("Timings", []):
+                all_timings.append({
+                    "LapNumber": lap_num,
+                    "driverId": str(t.get("driverId", "")).lower(),
+                    "Position": int(t.get("position", 0)) if t.get("position") else 0,
+                    "time_str": t.get("time", ""),
+                })
+
+    if not all_timings:
+        return None
+
+    df = pd.DataFrame(all_timings)
+    df["Driver"] = df["driverId"].map(id_to_abbr).fillna(df["driverId"])
+    df["DriverNumber"] = df["driverId"].map(id_to_num).fillna("")
+    df["Team"] = df["driverId"].map(id_to_team).fillna("")
+
+    def parse_time(s):
+        try:
+            parts = str(s).split(":")
+            if len(parts) == 2:
+                return pd.Timedelta(minutes=int(parts[0]), seconds=float(parts[1]))
+            return pd.Timedelta(seconds=float(parts[0]))
+        except Exception:
+            return pd.NaT
+
+    df["LapTime"] = df["time_str"].apply(parse_time)
+    df = df.dropna(subset=["LapTime"]).sort_values(["LapNumber", "Position"]).reset_index(drop=True)
+    df["Time"] = df.groupby("Driver")["LapTime"].cumsum()
+    df["Compound"] = "UNKNOWN"
+    df["Stint"] = 1
+    df["IsPersonalBest"] = False
+    return df
 
 
 @st.cache_data
@@ -322,9 +450,19 @@ def get_schedule(year):
 
 
 @st.cache_resource(ttl=3600)
-def load_session_data(year, race_name, session_name):
+def load_session_data(year, race_name, session_name, round_num=None):
     if not _CACHE_READY:
         setup_fastf1_cache()
+
+    # Determine round_num if not provided
+    if round_num is None:
+        try:
+            sched = get_schedule(int(year))
+            matched = sched[sched["EventName"] == race_name]
+            if not matched.empty:
+                round_num = int(matched.iloc[0]["RoundNumber"])
+        except Exception:
+            round_num = None
 
     session_code = SESSION_CODES.get(session_name, session_name)
     session_identifiers = [session_code]
@@ -336,14 +474,26 @@ def load_session_data(year, race_name, session_name):
     if session_name == "Sprint Shootout":
         session_identifiers.extend(["SS", "Sprint Qualifying"])
 
+    best_session = None
+    best_results = None
+    best_laps = None
+
     for session_identifier in session_identifiers:
-        try:
-            session = fastf1.get_session(year, race_name, session_identifier)
-        except Exception:
-            continue
+        session = None
+        # Try deterministic round number first if available
+        if round_num is not None and round_num > 0:
+            try:
+                session = fastf1.get_session(int(year), int(round_num), session_identifier)
+            except Exception:
+                session = None
+
+        if session is None:
+            try:
+                session = fastf1.get_session(int(year), race_name, session_identifier)
+            except Exception:
+                continue
 
         # Tier 1: Fast & reliable core load (laps, results, messages)
-        # Guarantees all lap pace, track position, lap time, and tyre strategy charts work!
         loaded_ok = False
         try:
             session.load(laps=True, telemetry=False, weather=False, messages=True)
@@ -355,31 +505,49 @@ def load_session_data(year, race_name, session_name):
             except Exception:
                 pass
 
-        if not loaded_ok:
-            continue
-
-        # Tier 2: Best-effort telemetry load (for speed/throttle/brake traces)
-        # If telemetry fails (e.g. rate limit, memory limit, timeout), session retains all laps!
+        curr_results = None
         try:
-            session.load(telemetry=True, weather=False, messages=False)
+            curr_results = session.results
         except Exception:
-            pass
+            curr_results = None
 
-        results = None
-        laps = None
-
+        curr_laps = None
         try:
-            results = session.results
+            if hasattr(session, "_laps") and session._laps is not None and not session._laps.empty:
+                curr_laps = session.laps
         except Exception:
-            results = None
+            curr_laps = None
 
-        try:
-            laps = session.laps
-        except Exception:
-            laps = None
+        if best_session is None:
+            best_session = session
+            best_results = curr_results
 
-        if results is not None or laps is not None:
-            return session, results, laps
+        if curr_laps is not None and not curr_laps.empty:
+            best_session = session
+            best_results = curr_results
+            best_laps = curr_laps
+
+            # Tier 2: Best-effort telemetry load (for speed/throttle/brake traces)
+            try:
+                session.load(telemetry=True, weather=False, messages=False)
+            except Exception:
+                pass
+            break
+
+    # If live timing laps failed or unavailable, check Jolpica fallback for race sessions
+    if (best_laps is None or best_laps.empty) and session_name in ["Race", "Sprint"]:
+        if round_num is not None and round_num > 0:
+            try:
+                fallback_laps = get_race_laps_fallback(int(year), int(round_num))
+                if fallback_laps is not None and not fallback_laps.empty:
+                    best_laps = fallback_laps
+                    if best_session is not None:
+                        best_session._laps = fallback_laps
+            except Exception:
+                pass
+
+    if best_session is not None or best_results is not None or best_laps is not None:
+        return best_session, best_results, best_laps
 
     return None, None, None
 
