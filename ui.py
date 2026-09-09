@@ -1278,7 +1278,10 @@ def render_topbar(current_index: int = 0, route_map: dict | None = None, **kwarg
         return
     st.session_state["_topbar_rendered_in_run"] = True
 
-    from streamlit_option_menu import option_menu
+    try:
+        from streamlit_option_menu import option_menu
+    except ImportError:
+        option_menu = None
 
     col_brand, col_nav = st.columns([1.2, 2.8], vertical_alignment="center")
 
@@ -1299,62 +1302,72 @@ def render_topbar(current_index: int = 0, route_map: dict | None = None, **kwarg
     options = ["Race Select", "Race Analysis", "Driver Compare", "Team Wiki"]
     icons = ["flag", "bar-chart-line", "people", "trophy"]
 
-    with col_nav:
-        selected = option_menu(
-            menu_title=None,
-            options=options,
-            icons=icons,
-            default_index=current_index,
-            orientation="horizontal",
-            styles={
-                "container": {
-                    "padding": "0px !important",
-                    "margin": "0px !important",
-                    "background-color": "transparent",
-                    "border": "none",
+    if option_menu is not None:
+        with col_nav:
+            selected = option_menu(
+                menu_title=None,
+                options=options,
+                icons=icons,
+                default_index=current_index,
+                orientation="horizontal",
+                styles={
+                    "container": {
+                        "padding": "0px !important",
+                        "margin": "0px !important",
+                        "background-color": "transparent",
+                        "border": "none",
+                    },
+                    "nav": {
+                        "justify-content": "flex-end !important",
+                        "gap": "6px !important",
+                        "align-items": "stretch !important",
+                    },
+                    "nav-item": {
+                        "flex": "none !important",
+                        "margin": "0px !important",
+                    },
+                    "icon": {
+                        "color": "inherit",
+                        "font-size": "12px",
+                        "vertical-align": "-1px",
+                        "margin-right": "6px",
+                    },
+                    "nav-link": {
+                        "font-family": "'Titillium Web', sans-serif",
+                        "font-size": "13px",
+                        "font-weight": "600",
+                        "text-transform": "uppercase",
+                        "letter-spacing": "0.08em",
+                        "color": "#8b949e",
+                        "background-color": "transparent",
+                        "padding": "10px 16px 8px 16px",
+                        "margin": "0px",
+                        "border-radius": "0px",
+                        "border": "none",
+                        "border-bottom": "3px solid transparent",
+                        "transition": "all 0.14s ease",
+                    },
+                    "nav-link-selected": {
+                        "background-color": "rgba(225, 6, 0, 0.06) !important",
+                        "color": "#ffffff !important",
+                        "font-weight": "700 !important",
+                        "border": "none !important",
+                        "border-bottom": "3px solid #e10600 !important",
+                        "border-radius": "0px !important",
+                        "box-shadow": "none !important",
+                    },
                 },
-                "nav": {
-                    "justify-content": "flex-end !important",
-                    "gap": "6px !important",
-                    "align-items": "stretch !important",
-                },
-                "nav-item": {
-                    "flex": "none !important",
-                    "margin": "0px !important",
-                },
-                "icon": {
-                    "color": "inherit",
-                    "font-size": "12px",
-                    "vertical-align": "-1px",
-                    "margin-right": "6px",
-                },
-                "nav-link": {
-                    "font-family": "'Titillium Web', sans-serif",
-                    "font-size": "13px",
-                    "font-weight": "600",
-                    "text-transform": "uppercase",
-                    "letter-spacing": "0.08em",
-                    "color": "#8b949e",
-                    "background-color": "transparent",
-                    "padding": "10px 16px 8px 16px",
-                    "margin": "0px",
-                    "border-radius": "0px",
-                    "border": "none",
-                    "border-bottom": "3px solid transparent",
-                    "transition": "all 0.14s ease",
-                },
-                "nav-link-selected": {
-                    "background-color": "rgba(225, 6, 0, 0.06) !important",
-                    "color": "#ffffff !important",
-                    "font-weight": "700 !important",
-                    "border": "none !important",
-                    "border-bottom": "3px solid #e10600 !important",
-                    "border-radius": "0px !important",
-                    "box-shadow": "none !important",
-                },
-            },
-            key=f"f1_top_nav_{current_index}",
-        )
+                key=f"f1_top_nav_{current_index}",
+            )
+    else:
+        with col_nav:
+            cols = st.columns(len(options))
+            selected = options[current_index]
+            for i, opt in enumerate(options):
+                with cols[i]:
+                    btn_type = "primary" if i == current_index else "secondary"
+                    if st.button(opt, key=f"f1_top_fallback_{i}", type=btn_type, use_container_width=True):
+                        selected = opt
 
     if route_map and selected in route_map:
         target = route_map[selected]

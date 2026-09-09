@@ -1,5 +1,7 @@
-streamlit 
-fastf1 
-pandas 
+streamlit
+fastf1
+pandas
 wikipedia
 matplotlib
+streamlit-option-menu
+altair
