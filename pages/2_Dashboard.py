@@ -88,14 +88,14 @@ def render_track_details(year, race_name, event) -> None:
                 render_circuit_records(event)
 
 
-def render_track_condition_overlay(year, race_name, round_num=None) -> None:
+def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
     with st.container(border=True, key="dialog_track_condition_overlay"):
         st.markdown("<p class='section-kicker'>Track Condition Overlay</p>", unsafe_allow_html=True)
         st.markdown("<h2>Weather, Pace & Incident Windows</h2>", unsafe_allow_html=True)
 
-        session, results, laps = load_session_data(year, race_name, "Race", round_num=round_num)
+        session, results, laps = load_session_data(year, race_name, "Race")
         if session is None or laps is None or laps.empty:
-            session, results, laps = load_session_data(year, race_name, "Sprint", round_num=round_num)
+            session, results, laps = load_session_data(year, race_name, "Sprint")
 
         if session is None or laps is None or laps.empty:
             st.warning("Track-condition overlay unavailable for this event.")
@@ -113,7 +113,12 @@ def render_track_condition_overlay(year, race_name, round_num=None) -> None:
             st.warning("Lap pace data unavailable for this session.")
             return
 
-        lap_pace["LapSec"] = lap_pace["LapTime"].dt.total_seconds()
+        lap_pace["LapSec"] = pd.to_timedelta(lap_pace["LapTime"], errors="coerce").dt.total_seconds()
+        lap_pace = lap_pace.dropna(subset=["LapSec"])
+        if lap_pace.empty:
+            st.warning("Lap pace data unavailable for this session.")
+            return
+
         lap_pace = (
             lap_pace.groupby("LapNumber", as_index=False)["LapSec"]
             .median()
@@ -414,18 +419,18 @@ def render_end_race_bar(event, selected_year) -> None:
                 )
 
 
-def render_qualifying_vs_race_pace_overlay(year, race_name, round_num=None) -> None:
+def render_qualifying_vs_race_pace_overlay(year, race_name, *args, **kwargs) -> None:
     with st.container(border=True, key="dialog_q_vs_r_pace"):
         st.markdown("<p class='section-kicker'>Pace Analysis</p>", unsafe_allow_html=True)
         st.markdown("<h2>Qualifying vs Race Pace (Top 3 Qualifiers)</h2>", unsafe_allow_html=True)
 
-        q_session, _, _ = load_session_data(year, race_name, "Qualifying", round_num=round_num)
+        q_session, _, _ = load_session_data(year, race_name, "Qualifying")
         if q_session is None:
-            q_session, _, _ = load_session_data(year, race_name, "Sprint Qualifying", round_num=round_num)
+            q_session, _, _ = load_session_data(year, race_name, "Sprint Qualifying")
 
-        r_session, _, _ = load_session_data(year, race_name, "Race", round_num=round_num)
+        r_session, _, _ = load_session_data(year, race_name, "Race")
         if r_session is None:
-            r_session, _, _ = load_session_data(year, race_name, "Sprint", round_num=round_num)
+            r_session, _, _ = load_session_data(year, race_name, "Sprint")
 
         q_results = None
         if q_session is not None and hasattr(q_session, 'results'):
@@ -475,7 +480,7 @@ def render_sessions(year, race_name, event) -> None:
     has_q = any(s in {"Qualifying", "Sprint Qualifying", "Sprint Shootout"} for s in result_sessions)
     has_r = any(s in {"Race", "Sprint"} for s in result_sessions)
     if has_q and has_r:
-        render_qualifying_vs_race_pace_overlay(year, race_name, round_num=round_num)
+        render_qualifying_vs_race_pace_overlay(year, race_name)
 
 
 def render_page_header_navigation(event, selected_year: int) -> None:
@@ -552,7 +557,7 @@ else:
     render_page_header_navigation(event, selected_year)
     render_event_snapshot(event, event_sessions)
     render_track_details(selected_year, selected_race, event)
-    render_track_condition_overlay(selected_year, selected_race, round_num=round_num)
+    render_track_condition_overlay(selected_year, selected_race)
     render_stage_stats(event, event_sessions)
     render_sessions(selected_year, selected_race, event)
     render_standings(selected_year, event['RoundNumber'])

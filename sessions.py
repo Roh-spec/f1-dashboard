@@ -299,10 +299,8 @@ def setup_fastf1_cache(cache_dir: str | None = None) -> None:
     _ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
     try:
         import fastf1.api as _f1_api
-        _f1_api.headers = {
-            "User-Agent": _ua,
-            "Accept-Encoding": "gzip, identity",
-        }
+        if hasattr(_f1_api, "headers") and isinstance(_f1_api.headers, dict):
+            _f1_api.headers["User-Agent"] = _ua
     except Exception:
         pass
 
@@ -435,9 +433,9 @@ def get_race_laps_fallback(year: int, round_num: int):
         except Exception:
             return pd.NaT
 
-    df["LapTime"] = df["time_str"].apply(parse_time)
+    df["LapTime"] = pd.to_timedelta(df["time_str"].apply(parse_time), errors="coerce")
     df = df.dropna(subset=["LapTime"]).sort_values(["LapNumber", "Position"]).reset_index(drop=True)
-    df["Time"] = df.groupby("Driver")["LapTime"].cumsum()
+    df["Time"] = pd.to_timedelta(df.groupby("Driver")["LapTime"].cumsum(), errors="coerce")
     df["Compound"] = "UNKNOWN"
     df["Stint"] = 1
     df["IsPersonalBest"] = False
@@ -450,9 +448,20 @@ def get_schedule(year):
 
 
 @st.cache_resource(ttl=3600)
-def load_session_data(year, race_name, session_name, round_num=None):
+def load_session_data(year, race_name, session_name, *args, **kwargs):
     if not _CACHE_READY:
         setup_fastf1_cache()
+
+    # Extract round_num flexibly from kwargs or positional args
+    round_num = kwargs.get("round_num")
+    if round_num is None and args:
+        round_num = args[0]
+
+    if round_num is not None:
+        try:
+            round_num = int(round_num)
+        except (ValueError, TypeError):
+            round_num = None
 
     # Determine round_num if not provided
     if round_num is None:

@@ -31,7 +31,11 @@ def _safe_laps(session):
     if session is None:
         return None
     try:
-        return session.laps
+        laps = session.laps
+        if laps is not None and not laps.empty and "LapTime" in laps:
+            laps = laps.copy()
+            laps["LapTime"] = pd.to_timedelta(laps["LapTime"], errors="coerce")
+        return laps
     except Exception:
         return None
 
@@ -240,7 +244,8 @@ def plot_lap_times(session, compact=False):
     ax.set_ylabel("Lap Time (s)", color='#f0f3f6', fontsize=9)
 
     event_name = session.event.EventName if hasattr(session, 'event') and session.event is not None else "Session"
-    fig.suptitle(f"{event_name} - {session.name} Lap Times", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
+    s_name = getattr(session, 'name', 'Race')
+    fig.suptitle(f"{event_name} - {s_name} Lap Times", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
 
     ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', fontsize='x-small', framealpha=0.95)
     fig.tight_layout()
@@ -279,7 +284,8 @@ def plot_driver_positions(session, compact=False):
     ax.set_ylabel("Position", color='#f0f3f6', fontsize=9)
 
     event_name = session.event.EventName if hasattr(session, 'event') and session.event is not None else "Session"
-    fig.suptitle(f"{event_name} - {session.name} Track Positions", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
+    s_name = getattr(session, 'name', 'Race')
+    fig.suptitle(f"{event_name} - {s_name} Track Positions", color='#f0f3f6', family='monospace', fontsize=10, weight='bold')
 
     ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#161b22', edgecolor='#262c36', labelcolor='#f0f3f6', fontsize='x-small', framealpha=0.95)
     fig.tight_layout()

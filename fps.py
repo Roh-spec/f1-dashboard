@@ -9,6 +9,8 @@ def build_fastest_lap_table(laps, results):
         return None
 
     quick_laps = laps.pick_quicklaps() if hasattr(laps, "pick_quicklaps") else laps
+    if quick_laps is None or quick_laps.empty:
+        quick_laps = laps
     quick_laps = quick_laps.dropna(subset=["LapTime"])
     if quick_laps.empty:
         return None
@@ -131,5 +133,5 @@ def render_fp_sessions(year, race_name, practice_sessions, round_num=None):
         for column, session_name in zip(columns, practice_sessions):
             with column:
                 with anime_loading_box(f"Loading {SESSION_LABELS.get(session_name, session_name).upper()} data..."):
-                    session, results, laps = load_session_data(year, race_name, session_name, round_num=round_num)
+                    session, results, laps = load_session_data(year, race_name, session_name)
                 render_fp_card(session_name, results, laps, year=year)
