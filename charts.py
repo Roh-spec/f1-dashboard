@@ -45,6 +45,17 @@ def _safe_results(session):
         return None
 
 
+def _ensure_telemetry_loaded(session):
+    if session is None:
+        return False
+    try:
+        if not hasattr(session, '_car_data') or session._car_data is None:
+            session.load(telemetry=True, weather=False, messages=False)
+        return True
+    except Exception:
+        return False
+
+
 def plot_top_2_telemetry(session, compact=False):
     laps = _safe_laps(session)
     if laps is None or laps.empty:
@@ -75,13 +86,14 @@ def plot_top_2_telemetry(session, compact=False):
             st.warning("Could not find valid fastest lap for top drivers.")
             return
 
+        _ensure_telemetry_loaded(session)
         import fastf1.utils
         import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             delta_time, tel_d1, tel_d2 = fastf1.utils.delta_time(laps_d1, laps_d2)
     except Exception as e:
-        st.warning(f"Telemetry data unavailable: {e}")
+        st.info(f"Detailed 10Hz telemetry overlay unavailable ({e}). Lap pace and race traces are displayed below.")
         return
 
     try:
@@ -363,13 +375,15 @@ def plot_driver_telemetry_comparison(driver, session1, session2, name1="Qualifyi
             st.warning(f"Could not find valid fastest lap for {driver} in both sessions.")
             return
 
+        _ensure_telemetry_loaded(session1)
+        _ensure_telemetry_loaded(session2)
         import fastf1.utils
         import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             delta_time, tel1, tel2 = fastf1.utils.delta_time(lap1, lap2)
     except Exception as e:
-        st.warning(f"Telemetry data unavailable for {driver}: {e}")
+        st.info(f"Detailed 10Hz telemetry comparison unavailable for {driver} ({e}).")
         return
 
     try:

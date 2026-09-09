@@ -292,11 +292,27 @@ def _resolve_team_lineage(constructor_id):
     }
 
 
-def setup_fastf1_cache(cache_dir: str = "f1_cache") -> None:
+def setup_fastf1_cache(cache_dir: str | None = None) -> None:
     global _CACHE_READY
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-    fastf1.Cache.enable_cache(cache_dir)
+    if cache_dir is None:
+        # On Linux/Cloud environments (like Streamlit Cloud /mount/src/...),
+        # use /tmp to prevent SQLite locking errors on network filesystems.
+        if os.name != "nt" or "/mount/" in os.path.abspath("."):
+            import tempfile
+            cache_dir = os.path.join(tempfile.gettempdir(), "fastf1_cache")
+        else:
+            cache_dir = "f1_cache"
+
+    try:
+        os.makedirs(cache_dir, exist_ok=True)
+        fastf1.Cache.enable_cache(cache_dir)
+    except Exception:
+        try:
+            import tempfile
+            t_dir = tempfile.mkdtemp()
+            fastf1.Cache.enable_cache(t_dir)
+        except Exception:
+            pass
     _CACHE_READY = True
 
 
@@ -305,7 +321,7 @@ def get_schedule(year):
     return fastf1.get_event_schedule(year)
 
 
-@st.cache_data
+@st.cache_resource(ttl=3600)
 def load_session_data(year, race_name, session_name):
     if not _CACHE_READY:
         setup_fastf1_cache()
@@ -323,9 +339,31 @@ def load_session_data(year, race_name, session_name):
     for session_identifier in session_identifiers:
         try:
             session = fastf1.get_session(year, race_name, session_identifier)
-            session.load(laps=True, telemetry=True, weather=False, messages=True)
         except Exception:
             continue
+
+        # Tier 1: Fast & reliable core load (laps, results, messages)
+        # Guarantees all lap pace, track position, lap time, and tyre strategy charts work!
+        loaded_ok = False
+        try:
+            session.load(laps=True, telemetry=False, weather=False, messages=True)
+            loaded_ok = True
+        except Exception:
+            try:
+                session.load(laps=True, telemetry=False, weather=False, messages=False)
+                loaded_ok = True
+            except Exception:
+                pass
+
+        if not loaded_ok:
+            continue
+
+        # Tier 2: Best-effort telemetry load (for speed/throttle/brake traces)
+        # If telemetry fails (e.g. rate limit, memory limit, timeout), session retains all laps!
+        try:
+            session.load(telemetry=True, weather=False, messages=False)
+        except Exception:
+            pass
 
         results = None
         laps = None
