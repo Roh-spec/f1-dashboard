@@ -1,6 +1,6 @@
 import streamlit as st
 
-from ui import anime_loading_box
+from ui import anime_loading_box, get_team_color
 from sessions import SESSION_LABELS, best_driver_name, format_timing_value, load_session_data
 
 
@@ -53,14 +53,14 @@ def render_fp_card(session_name, results, laps):
         )
         st.markdown(
             f"""
-            <div class="practice-card">
+            <div class="practice-card" style="border-top: 3px solid #e10600;">
                 <p class="practice-title">{label}</p>
                 <p class="practice-stat">
-                    <span class="practice-label">Timing</span>
+                    <span class="practice-label" style="color: #e10600;">Timing</span>
                     Unsupported archive
                 </p>
                 <p class="practice-stat">
-                    <span class="practice-label">Entry List</span>
+                    <span class="practice-label" style="color: #e10600;">Entry List</span>
                     {detail}
                 </p>
             </div>
@@ -70,21 +70,33 @@ def render_fp_card(session_name, results, laps):
         return
 
     fastest = table.iloc[0]
+    driver_name = fastest.get("DRIVER", "-")
+    team_name = fastest.get("TEAM", "-")
+    lap_time = fastest.get("FASTEST LAP", "-")
+    lap_num = fastest.get("LAP", "-")
+    tyre_comp = fastest.get("TYRE", "-")
+
+    # Dynamic team color for the fastest driver
+    team_col = get_team_color(team_name or driver_name)
+
     st.markdown(
         f"""
-        <div class="practice-card">
-            <p class="practice-title">{label}</p>
+        <div class="practice-card" style="border-top: 3px solid {team_col}; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span class="practice-title">{label}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; font-weight: 700; color: {team_col}; background: rgba(255,255,255,0.04); border: 1px solid {team_col}; padding: 2px 7px; text-transform: uppercase;">{team_name}</span>
+            </div>
             <p class="practice-stat">
-                <span class="practice-label">Fastest</span>
-                {fastest.get("DRIVER", "-")}
+                <span class="practice-label" style="color: {team_col}; font-weight: 700;">Fastest</span>
+                <strong style="color: #f0f3f6; font-size: 1.05rem;">{driver_name}</strong>
             </p>
             <p class="practice-stat">
-                <span class="practice-label">Lap Time</span>
-                {fastest.get("FASTEST LAP", "-")}
+                <span class="practice-label" style="color: {team_col}; font-weight: 700;">Lap Time</span>
+                <span style="font-family: 'JetBrains Mono', monospace; color: {team_col}; font-weight: 700; font-size: 1.05rem;">{lap_time}</span>
             </p>
             <p class="practice-stat">
-                <span class="practice-label">Team / Lap / Tyre</span>
-                {fastest.get("TEAM", "-")} / {fastest.get("LAP", "-")} / {fastest.get("TYRE", "-")}
+                <span class="practice-label" style="color: {team_col}; font-weight: 700;">Team / Lap / Tyre</span>
+                <span style="color: #c9d1d9;">{team_name} / Lap {lap_num} / {tyre_comp}</span>
             </p>
         </div>
         """,

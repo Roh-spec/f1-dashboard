@@ -4,6 +4,7 @@ import random
 import re
 import unicodedata
 from difflib import SequenceMatcher
+from html import escape
 from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", os.path.join(os.getcwd(), "f1_cache", "matplotlib"))
@@ -42,9 +43,10 @@ CIRCUIT_ALIASES = {
     "austrian grand prix": "Red Bull Ring",
     "silverstone": "Silverstone Circuit",
     "british grand prix": "Silverstone Circuit",
-    "spa francorchamps": "Belgium-1-scaled",
-    "spa-francorchamps": "Belgium-1-scaled",
-    "belgian grand prix": "Belgium-1-scaled",
+    "spa francorchamps": "Circuit de Spa-Francorchamps",
+    "spa-francorchamps": "Circuit de Spa-Francorchamps",
+    "circuit de spa francorchamps": "Circuit de Spa-Francorchamps",
+    "belgian grand prix": "Circuit de Spa-Francorchamps",
     "budapest": "Hungaroring",
     "hungarian grand prix": "Hungaroring",
     "zandvoort": "Circuit Zandvoort",
@@ -61,6 +63,7 @@ CIRCUIT_ALIASES = {
     "mexico city grand prix": "Autodromo Hermanos Rodriguez",
     "sao paulo": "Autodromo Jose Carlos Pace",
     "brazilian grand prix": "Autodromo Jose Carlos Pace",
+    "interlagos": "Autodromo Jose Carlos Pace",
     "las vegas": "Las Vegas Strip Circuit",
     "las vegas grand prix": "Las Vegas Strip Circuit",
     "yas island": "Yas Marina Circuit",
@@ -71,204 +74,285 @@ CIRCUIT_ALIASES = {
     "eifel grand prix": "Nurburgring",
     "portimao": "Autodromo Internacional do Algarve",
     "portuguese grand prix": "Autodromo Internacional do Algarve",
+    "losail": "Losail 2023",
+    "lusail": "Losail 2023",
+    "qatar grand prix": "Losail 2023",
+    "jeddah": "Jeddah Street Circuit",
+    "saudi arabian grand prix": "Jeddah Street Circuit",
+    "sochi": "Sochi Autodrom",
+    "russian grand prix": "Sochi Autodrom",
 }
 
 TRACK_FACTS = {
     "albert park circuit": {
         "first_f1": "1996",
         "races": "28 Australian GPs through 2025",
-        "winners": "Michael Schumacher 4, Jenson Button 3, Sebastian Vettel 3",
+        "most_wins": "Michael Schumacher (4 wins)",
+        "most_poles": "Lewis Hamilton (8 poles)",
+        "lap_record": "Charles Leclerc - 1:19.813 (2024)",
         "length": "5.278 km",
         "laps": "58",
     },
     "bahrain international circuit": {
         "first_f1": "2004",
         "races": "21 Bahrain GPs through 2025",
-        "winners": "Lewis Hamilton 5, Sebastian Vettel 4, Fernando Alonso 3",
+        "most_wins": "Lewis Hamilton (5 wins)",
+        "most_poles": "Lewis Hamilton (3 poles)",
+        "lap_record": "Pedro de la Rosa - 1:31.447 (2005)",
         "length": "5.412 km",
         "laps": "57",
     },
     "shanghai international circuit": {
         "first_f1": "2004",
         "races": "18 Chinese GPs through 2025",
-        "winners": "Lewis Hamilton 6, Fernando Alonso 2, Nico Rosberg 1",
+        "most_wins": "Lewis Hamilton (6 wins)",
+        "most_poles": "Lewis Hamilton (6 poles)",
+        "lap_record": "Michael Schumacher - 1:32.238 (2004)",
         "length": "5.451 km",
         "laps": "56",
     },
     "suzuka international racing course": {
         "first_f1": "1987",
-        "races": "Japanese GP regular host",
-        "winners": "Michael Schumacher 6, Lewis Hamilton 5, Sebastian Vettel 4",
+        "races": "34 Japanese GPs through 2025",
+        "most_wins": "Michael Schumacher (6 wins)",
+        "most_poles": "Michael Schumacher (8 poles)",
+        "lap_record": "Lewis Hamilton - 1:30.983 (2019)",
         "length": "5.807 km",
         "laps": "53",
     },
     "miami international autodrome": {
         "first_f1": "2022",
         "races": "4 Miami GPs through 2025",
-        "winners": "Max Verstappen 2, Lando Norris 1, Oscar Piastri 1",
+        "most_wins": "Max Verstappen (2 wins)",
+        "most_poles": "Max Verstappen & Charles Leclerc (1 pole each)",
+        "lap_record": "Max Verstappen - 1:29.708 (2023)",
         "length": "5.412 km",
         "laps": "57",
     },
     "autodromo enzo e dino ferrari": {
         "first_f1": "1980",
-        "races": "Italian, San Marino, and Emilia Romagna GPs",
-        "winners": "Michael Schumacher 7, Max Verstappen 3, Ayrton Senna 3",
+        "races": "31 GPs (Imola / San Marino / Emilia Romagna)",
+        "most_wins": "Michael Schumacher (7 wins)",
+        "most_poles": "Ayrton Senna (8 poles)",
+        "lap_record": "Lewis Hamilton - 1:15.484 (2020)",
         "length": "4.909 km",
         "laps": "63",
     },
     "circuit de monaco": {
         "first_f1": "1950",
         "races": "70+ Monaco GPs",
-        "winners": "Ayrton Senna 6, Graham Hill 5, Michael Schumacher 5",
+        "most_wins": "Ayrton Senna (6 wins)",
+        "most_poles": "Ayrton Senna (5 poles)",
+        "lap_record": "Lewis Hamilton - 1:12.909 (2021)",
         "length": "3.337 km",
         "laps": "78",
     },
     "circuit de barcelona catalunya": {
         "first_f1": "1991",
-        "races": "Spanish GP host since 1991",
-        "winners": "Lewis Hamilton 6, Michael Schumacher 6, Max Verstappen 4",
+        "races": "34 Spanish GPs since 1991",
+        "most_wins": "Michael Schumacher & Lewis Hamilton (6 wins each)",
+        "most_poles": "Michael Schumacher (7 poles)",
+        "lap_record": "Max Verstappen - 1:16.330 (2023)",
         "length": "4.657 km",
         "laps": "66",
     },
     "circuit gilles villeneuve": {
         "first_f1": "1978",
-        "races": "Canadian GP host since 1978",
-        "winners": "Michael Schumacher 7, Lewis Hamilton 7, Nelson Piquet 3",
+        "races": "43 Canadian GPs since 1978",
+        "most_wins": "Michael Schumacher & Lewis Hamilton (7 wins each)",
+        "most_poles": "Michael Schumacher & Lewis Hamilton (6 poles each)",
+        "lap_record": "Valtteri Bottas - 1:13.078 (2019)",
         "length": "4.361 km",
         "laps": "70",
     },
     "red bull ring": {
         "first_f1": "1970",
-        "races": "Austrian GP eras at Osterreichring/A1 Ring/Red Bull Ring",
-        "winners": "Max Verstappen 5, Alain Prost 3, Ronnie Peterson 2",
+        "races": "38 Austrian GPs",
+        "most_wins": "Max Verstappen (5 wins)",
+        "most_poles": "Max Verstappen (4 poles)",
+        "lap_record": "Carlos Sainz - 1:05.619 (2020)",
         "length": "4.318 km",
         "laps": "71",
     },
     "silverstone circuit": {
         "first_f1": "1950",
-        "races": "British GP cornerstone venue",
-        "winners": "Lewis Hamilton 9, Jim Clark 5, Alain Prost 5",
+        "races": "58 British GPs at Silverstone",
+        "most_wins": "Lewis Hamilton (9 wins)",
+        "most_poles": "Lewis Hamilton (8 poles)",
+        "lap_record": "Max Verstappen - 1:27.097 (2020)",
         "length": "5.891 km",
         "laps": "52",
     },
-    "belgium 1 scaled": {
-        "first_f1": "1950",
-        "races": "Belgian GP classic venue",
-        "winners": "Michael Schumacher 6, Ayrton Senna 5, Jim Clark 4",
-        "length": "7.004 km",
-        "laps": "44",
-    },
     "hungaroring": {
         "first_f1": "1986",
-        "races": "Hungarian GP host since 1986",
-        "winners": "Lewis Hamilton 8, Michael Schumacher 4, Ayrton Senna 3",
+        "races": "39 Hungarian GPs since 1986",
+        "most_wins": "Lewis Hamilton (8 wins)",
+        "most_poles": "Lewis Hamilton (9 poles)",
+        "lap_record": "Lewis Hamilton - 1:16.627 (2020)",
         "length": "4.381 km",
         "laps": "70",
     },
+    "circuit de spa francorchamps": {
+        "first_f1": "1950",
+        "races": "57 Belgian GPs at Spa",
+        "most_wins": "Michael Schumacher (6 wins)",
+        "most_poles": "Lewis Hamilton (6 poles)",
+        "lap_record": "Sergio Perez - 1:44.701 (2024)",
+        "length": "7.004 km",
+        "laps": "44",
+    },
     "circuit zandvoort": {
         "first_f1": "1952",
-        "races": "Dutch GP historic and modern host",
-        "winners": "Jim Clark 4, Max Verstappen 3, Jackie Stewart 3",
+        "races": "34 Dutch GPs",
+        "most_wins": "Jim Clark (4 wins)",
+        "most_poles": "René Arnoux (3 poles)",
+        "lap_record": "Lewis Hamilton - 1:11.097 (2021)",
         "length": "4.259 km",
         "laps": "72",
     },
     "autodromo nazionale monza": {
         "first_f1": "1950",
-        "races": "Italian GP's long-time home",
-        "winners": "Michael Schumacher 5, Lewis Hamilton 5, Nelson Piquet 4",
+        "races": "74 Italian GPs at Monza",
+        "most_wins": "Michael Schumacher & Lewis Hamilton (5 wins each)",
+        "most_poles": "Lewis Hamilton (7 poles)",
+        "lap_record": "Rubens Barrichello - 1:21.046 (2004)",
         "length": "5.793 km",
         "laps": "53",
     },
     "baku city circuit": {
         "first_f1": "2016",
-        "races": "Azerbaijan/European GPs",
-        "winners": "Sergio Perez 2, Nico Rosberg 1, Daniel Ricciardo 1",
+        "races": "8 Azerbaijan GPs",
+        "most_wins": "Sergio Perez (2 wins)",
+        "most_poles": "Charles Leclerc (4 poles)",
+        "lap_record": "Charles Leclerc - 1:43.009 (2019)",
         "length": "6.003 km",
         "laps": "51",
     },
     "marina bay street circuit": {
         "first_f1": "2008",
-        "races": "Singapore GP night-race host",
-        "winners": "Sebastian Vettel 5, Lewis Hamilton 4, Fernando Alonso 2",
+        "races": "15 Singapore GPs",
+        "most_wins": "Sebastian Vettel (5 wins)",
+        "most_poles": "Lewis Hamilton & Sebastian Vettel (4 poles each)",
+        "lap_record": "Daniel Ricciardo - 1:34.486 (2024)",
         "length": "4.940 km",
         "laps": "62",
     },
     "circuit of the americas": {
         "first_f1": "2012",
-        "races": "United States GP host since 2012",
-        "winners": "Lewis Hamilton 5, Max Verstappen 3, Charles Leclerc 1",
+        "races": "12 US GPs in Austin",
+        "most_wins": "Lewis Hamilton (5 wins)",
+        "most_poles": "Lewis Hamilton (3 poles)",
+        "lap_record": "Charles Leclerc - 1:36.169 (2019)",
         "length": "5.513 km",
         "laps": "56",
     },
     "autodromo hermanos rodriguez": {
         "first_f1": "1963",
-        "races": "Mexican/Mexico City GP venue",
-        "winners": "Max Verstappen 5, Jim Clark 3, Alain Prost 2",
+        "races": "24 Mexico City GPs",
+        "most_wins": "Max Verstappen (5 wins)",
+        "most_poles": "Jim Clark (4 poles)",
+        "lap_record": "Valtteri Bottas - 1:17.774 (2021)",
         "length": "4.304 km",
         "laps": "71",
     },
     "autodromo jose carlos pace": {
         "first_f1": "1973",
-        "races": "Brazilian/Sao Paulo GP host",
-        "winners": "Michael Schumacher 4, Sebastian Vettel 3, Carlos Reutemann 3",
+        "races": "41 Brazilian GPs at Interlagos",
+        "most_wins": "Michael Schumacher (4 wins)",
+        "most_poles": "Ayrton Senna (6 poles)",
+        "lap_record": "Valtteri Bottas - 1:10.540 (2018)",
         "length": "4.309 km",
         "laps": "71",
     },
     "las vegas strip circuit": {
         "first_f1": "2023",
-        "races": "Las Vegas GP host since 2023",
-        "winners": "Max Verstappen 1, George Russell 1",
+        "races": "2 Las Vegas GPs",
+        "most_wins": "Max Verstappen & George Russell (1 win each)",
+        "most_poles": "Charles Leclerc & George Russell (1 pole each)",
+        "lap_record": "Lando Norris - 1:34.876 (2024)",
         "length": "6.201 km",
         "laps": "50",
     },
     "yas marina circuit": {
         "first_f1": "2009",
-        "races": "Abu Dhabi GP host since 2009",
-        "winners": "Lewis Hamilton 5, Max Verstappen 4, Sebastian Vettel 3",
+        "races": "16 Abu Dhabi GPs",
+        "most_wins": "Lewis Hamilton (5 wins)",
+        "most_poles": "Lewis Hamilton (5 poles)",
+        "lap_record": "Kevin Magnussen - 1:25.637 (2024)",
         "length": "5.281 km",
         "laps": "58",
     },
-    "qatar grand prix": {
+    "losail 2023": {
         "first_f1": "2021",
-        "races": "Qatar GP host",
-        "winners": "Max Verstappen 1, Lewis Hamilton 1",
+        "races": "3 Qatar GPs",
+        "most_wins": "Max Verstappen (2 wins)",
+        "most_poles": "Lewis Hamilton, Max Verstappen, George Russell (1 pole each)",
+        "lap_record": "Max Verstappen - 1:24.319 (2023)",
         "length": "5.419 km",
+        "laps": "57",
+    },
+    "losail until 2023": {
+        "first_f1": "2021",
+        "races": "Qatar GP host (original)",
+        "most_wins": "Lewis Hamilton (1 win)",
+        "most_poles": "Lewis Hamilton (1 pole)",
+        "lap_record": "Max Verstappen - 1:23.196 (2021)",
+        "length": "5.380 km",
         "laps": "57",
     },
     "jeddah street circuit": {
         "first_f1": "2021",
-        "races": "Saudi Arabian GP host since 2021",
-        "winners": "Max Verstappen 2, Lewis Hamilton 1, Sergio Perez 1",
+        "races": "4 Saudi Arabian GPs",
+        "most_wins": "Max Verstappen (2 wins)",
+        "most_poles": "Sergio Perez (2 poles)",
+        "lap_record": "Lewis Hamilton - 1:30.734 (2021)",
         "length": "6.174 km",
         "laps": "50",
     },
     "autodromo internacional do algarve": {
         "first_f1": "2020",
-        "races": "Portuguese GP host (2020-2021)",
-        "winners": "Lewis Hamilton 2",
+        "races": "2 Portuguese GPs (2020-2021)",
+        "most_wins": "Lewis Hamilton (2 wins)",
+        "most_poles": "Valtteri Bottas & Lewis Hamilton (1 pole each)",
+        "lap_record": "Lewis Hamilton - 1:18.750 (2020)",
         "length": "4.653 km",
         "laps": "66",
     },
     "intercity istanbul park circuit": {
         "first_f1": "2005",
-        "races": "Turkish GP host",
-        "winners": "Felipe Massa 3, Lewis Hamilton 2, Kimi Raikkonen 1",
+        "races": "9 Turkish GPs",
+        "most_wins": "Felipe Massa (3 wins)",
+        "most_poles": "Felipe Massa (3 poles)",
+        "lap_record": "Juan Pablo Montoya - 1:24.770 (2005)",
         "length": "5.338 km",
         "laps": "58",
     },
     "sochi autodrom": {
         "first_f1": "2014",
-        "races": "Russian GP host (2014-2021)",
-        "winners": "Lewis Hamilton 5, Valtteri Bottas 2, Nico Rosberg 1",
+        "races": "8 Russian GPs (2014-2021)",
+        "most_wins": "Lewis Hamilton (5 wins)",
+        "most_poles": "Lewis Hamilton & Nico Rosberg (2 poles each)",
+        "lap_record": "Lewis Hamilton - 1:35.761 (2019)",
         "length": "5.848 km",
         "laps": "53",
     },
     "bahrain international circuit outer track": {
         "first_f1": "2020",
-        "races": "Sakhir GP host (2020)",
-        "winners": "Sergio Perez 1",
+        "races": "1 Sakhir GP (2020)",
+        "most_wins": "Sergio Perez (1 win)",
+        "most_poles": "Valtteri Bottas (1 pole)",
+        "lap_record": "George Russell - 0:55.404 (2020)",
         "length": "3.543 km",
         "laps": "87",
+    },
+    "nurburgring": {
+        "first_f1": "1951",
+        "races": "German, European, and Eifel GPs",
+        "most_wins": "Michael Schumacher (5 wins)",
+        "most_poles": "Michael Schumacher (3 poles)",
+        "lap_record": "Max Verstappen - 1:28.139 (2020)",
+        "length": "5.148 km",
+        "laps": "60",
     },
 }
 
@@ -284,25 +368,25 @@ def render_circuit_map(year: int, race_name: str, event) -> None:
     points, source_label = _get_circuit_points(year, race_name, event["EventName"])
 
     fig, ax = plt.subplots(figsize=(5.8, 3.8), dpi=140)
-    fig.patch.set_facecolor("#fff0e7")
-    ax.set_facecolor("#fff0e7")
+    fig.patch.set_facecolor("#161b22")
+    ax.set_facecolor("#161b22")
 
-    ax.plot(points["X"], points["Y"], color="#171717", linewidth=4.0, solid_capstyle="round")
-    ax.plot(points["X"], points["Y"], color="#37b4c8", linewidth=1.6, solid_capstyle="round")
-    ax.scatter(points["X"], points["Y"], s=26, color="#f06a8a", edgecolors="#171717", linewidths=0.8, zorder=3)
+    ax.plot(points["X"], points["Y"], color="#262c36", linewidth=5.0, solid_capstyle="round")
+    ax.plot(points["X"], points["Y"], color="#e10600", linewidth=2.0, solid_capstyle="round")
+    ax.scatter(points["X"], points["Y"], s=26, color="#f0f3f6", edgecolors="#e10600", linewidths=1.0, zorder=3)
 
     start = points.iloc[0]
-    ax.scatter([start["X"]], [start["Y"]], s=58, marker="s", color="#ffffff", edgecolors="#171717", linewidths=1.2, zorder=4)
-    ax.text(start["X"], start["Y"], "S", ha="center", va="center", fontsize=8, weight="bold", color="#171717", zorder=5)
+    ax.scatter([start["X"]], [start["Y"]], s=64, marker="s", color="#e10600", edgecolors="#f0f3f6", linewidths=1.4, zorder=4)
+    ax.text(start["X"], start["Y"], "S", ha="center", va="center", fontsize=8, weight="bold", color="#ffffff", zorder=5)
 
-    ax.set_title(str(event["EventName"]).upper(), fontsize=9, color="#171717", pad=10, fontweight="bold")
+    ax.set_title(str(event["EventName"]).upper(), fontsize=9, color="#f0f3f6", pad=10, fontweight="bold", fontfamily="monospace")
     ax.text(
         0.02,
         0.03,
         source_label,
         transform=ax.transAxes,
         fontsize=7,
-        color="#6b4b3b",
+        color="#8b949e",
         fontweight="bold",
     )
     ax.set_aspect("equal", adjustable="datalim")
@@ -327,11 +411,12 @@ def find_circuit_image(event) -> Path | None:
 
     lookup = {_normalize(path.stem): path for path in images}
     alias_lookup = {_normalize(key): value for key, value in CIRCUIT_ALIASES.items()}
+
+    # Core identification terms (exclude OfficialEventName which often contains title sponsors like Qatar Airways)
     candidates = [
         event.get("CircuitName"),
         event.get("Location"),
         event.get("EventName"),
-        event.get("OfficialEventName"),
     ]
 
     try:
@@ -339,12 +424,13 @@ def find_circuit_image(event) -> Path | None:
     except Exception:
         year = 2024
 
-    is_qatar = any(
-        candidate and any(term in str(candidate).lower() for term in ("qatar", "lusail", "losail"))
-        for candidate in candidates
+    # True Qatar GP detection (based on location/event name, not sponsor names)
+    is_true_qatar = any(
+        c and any(term in str(c).lower() for term in ("lusail", "losail")) or str(c).lower() == "qatar grand prix"
+        for c in candidates
     )
 
-    if is_qatar:
+    if is_true_qatar:
         target = "losail 2023" if year >= 2023 else "losail until 2023"
         if target in lookup:
             return lookup[target]
@@ -375,7 +461,7 @@ def find_circuit_image(event) -> Path | None:
                 best_score = score
                 best_path = path
 
-    return best_path if best_score >= 0.58 else None
+    return best_path if best_score >= 0.52 else None
 
 
 @st.cache_data(show_spinner=False)
@@ -422,27 +508,55 @@ def render_track_analysis(event) -> None:
         st.markdown(
             "\n".join(
                 [
-                    f"- **F1 debut:** {facts['first_f1']}",
-                    f"- **Number of races:** {facts['races']}",
-                    f"- **Track length:** {facts['length']}",
-                    f"- **Race laps:** {facts['laps']}",
+                    f"- **F1 debut:** {facts.get('first_f1', 'Archive pending')}",
+                    f"- **Number of races:** {facts.get('races', 'Archive pending')}",
+                    f"- **Track length:** {facts.get('length', 'Archive pending')}",
+                    f"- **Race laps:** {facts.get('laps', 'Archive pending')}",
                     f"- **Total distance:** {_total_distance(facts)}",
                 ]
             )
         )
 
 
-def render_circuit_winners(event) -> None:
-    winners = get_track_facts(event)["winners"]
-    with st.container(key="circuit_winners_list"):
-        st.markdown("<h3>Most wins</h3>", unsafe_allow_html=True)
-        for winner in _split_winners(winners):
-            if winner != "Archive pending" and winner[-1].isdigit():
-                parts = winner.rsplit(" ", 1)
-                count = parts[1]
-                word = "win" if count == "1" else "wins"
-                winner = f"{parts[0]}: {count} {word}"
-            st.markdown(f"- {winner}")
+def render_circuit_records(event) -> None:
+    """Renders the top historical circuit milestones: Most Wins, Most Poles, and Fastest Lap (Lap Record)."""
+    facts = get_track_facts(event)
+    most_wins = facts.get("most_wins", "Archive pending")
+    most_poles = facts.get("most_poles", "Archive pending")
+    lap_record = facts.get("lap_record", "Archive pending")
+
+    with st.container(key="circuit_records_box"):
+        st.markdown("<p class='section-kicker'>Circuit Milestones</p>", unsafe_allow_html=True)
+        st.markdown("<h3>Track Records</h3>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="circuit-records-grid">
+                <div class="record-card">
+                    <div class="record-header">
+                        <span class="record-label">MOST WINS</span>
+                    </div>
+                    <div class="record-value">{escape(most_wins)}</div>
+                </div>
+                <div class="record-card">
+                    <div class="record-header">
+                        <span class="record-label">MOST POLES</span>
+                    </div>
+                    <div class="record-value">{escape(most_poles)}</div>
+                </div>
+                <div class="record-card">
+                    <div class="record-header">
+                        <span class="record-label">FASTEST LAP</span>
+                    </div>
+                    <div class="record-value record-timing">{escape(lap_record)}</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# Backward compatibility alias
+render_circuit_winners = render_circuit_records
 
 
 def get_track_facts(event) -> dict[str, str]:
@@ -453,35 +567,36 @@ def get_track_facts(event) -> dict[str, str]:
 
     keys.extend(
         _normalize(event.get(field))
-        for field in ("CircuitName", "Location", "EventName", "OfficialEventName")
+        for field in ("CircuitName", "Location", "EventName")
     )
 
     for key in keys:
         if key in TRACK_FACTS:
             return TRACK_FACTS[key]
 
+        # Check alias
+        alias = CIRCUIT_ALIASES.get(key)
+        if alias and _normalize(alias) in TRACK_FACTS:
+            return TRACK_FACTS[_normalize(alias)]
+
     return {
         "first_f1": "Archive pending",
         "races": "Archive pending",
-        "winners": "Archive pending",
+        "most_wins": "Archive pending",
+        "most_poles": "Archive pending",
+        "lap_record": "Archive pending",
         "length": "Archive pending",
         "laps": "Archive pending",
     }
 
-def _split_winners(winners: str) -> list[str]:
-    if winners == "Archive pending":
-        return [winners]
-    return [winner.strip() for winner in winners.split(",") if winner.strip()]
-
 
 def _total_distance(facts: dict[str, str]) -> str:
     try:
-        length = float(facts["length"].replace("km", "").strip())
-        laps = int(facts["laps"])
-    except ValueError:
+        length = float(facts.get("length", "").replace("km", "").strip())
+        laps = int(facts.get("laps", 0))
+        return f"{length * laps:.3f} km"
+    except (ValueError, TypeError):
         return "Archive pending"
-
-    return f"{length * laps:.3f} km"
 
 
 def _normalize(value) -> str:

@@ -36,8 +36,8 @@ SESSION_LABELS = {
 }
 
 _CACHE_READY = False
-ERGAST_BASE_URL = "https://ergast.com/api/f1"
-ERGAST_FALLBACK_BASE_URL = "https://api.jolpi.ca/ergast/f1"
+ERGAST_BASE_URL = "https://api.jolpi.ca/ergast/f1"
+ERGAST_FALLBACK_BASE_URL = "https://ergast.com/api/f1"
 
 STATIC_DRIVER_DIRECTORY = [
     {"driverId": "hamilton", "givenName": "Lewis", "familyName": "Hamilton", "nationality": "British"},
@@ -49,7 +49,6 @@ STATIC_DRIVER_DIRECTORY = [
     {"driverId": "rosberg", "givenName": "Nico", "familyName": "Rosberg", "nationality": "German"},
     {"driverId": "massa", "givenName": "Felipe", "familyName": "Massa", "nationality": "Brazilian"},
     {"driverId": "schumacher", "givenName": "Michael", "familyName": "Schumacher", "nationality": "German"},
-    {"driverId": "alonso", "givenName": "Fernando", "familyName": "Alonso", "nationality": "Spanish"},
     {"driverId": "bottas", "givenName": "Valtteri", "familyName": "Bottas", "nationality": "Finnish"},
     {"driverId": "perez", "givenName": "Sergio", "familyName": "Perez", "nationality": "Mexican"},
     {"driverId": "norris", "givenName": "Lando", "familyName": "Norris", "nationality": "British"},
@@ -71,17 +70,17 @@ TEAM_LEADERS = {
     "mercedes": "Toto Wolff",
     "rb": "Laurent Mekies",
     "red_bull": "Christian Horner",
-    "sauber": "Alessandro Alunni Bravi",
+    "sauber": "Mattia Binotto",
     "williams": "James Vowles",
 }
 
 TEAM_PREVIOUS_NAMES = {
-    "alpine": ["Renault", "Lotus F1 Team", "Benetton"],
+    "alpine": ["Renault", "Lotus F1 Team", "Benetton", "Toleman"],
     "aston_martin": ["Racing Point", "Force India", "Spyker", "Midland", "Jordan"],
     "ferrari": [],
     "haas": [],
     "mclaren": [],
-    "mercedes": ["Brawn GP", "Tyrrell"],
+    "mercedes": ["Brawn GP", "Honda", "BAR", "Tyrrell"],
     "rb": ["AlphaTauri", "Toro Rosso", "Minardi"],
     "red_bull": ["Jaguar", "Stewart"],
     "sauber": ["Alfa Romeo", "BMW Sauber"],
@@ -91,7 +90,7 @@ TEAM_PREVIOUS_NAMES = {
 TEAM_LINEAGE = {
     "alpine": {
         "aliases": ["alpine", "renault", "lotus_f1", "benetton"],
-        "previous_names": ["Benetton", "Lotus F1 Team", "Renault"],
+        "previous_names": ["Benetton", "Lotus F1 Team", "Renault", "Toleman"],
     },
     "aston_martin": {
         "aliases": ["aston_martin", "racing_point", "force_india", "spyker", "midland", "jordan"],
@@ -110,8 +109,8 @@ TEAM_LINEAGE = {
         "previous_names": [],
     },
     "mercedes": {
-        "aliases": ["mercedes", "brawn", "tyrrell"],
-        "previous_names": ["Brawn GP", "Tyrrell"],
+        "aliases": ["mercedes", "brawn", "tyrrell", "honda", "bar"],
+        "previous_names": ["Brawn GP", "Honda", "BAR", "Tyrrell"],
     },
     "rb": {
         "aliases": ["rb", "alphatauri", "toro_rosso", "minardi"],
@@ -130,6 +129,156 @@ TEAM_LINEAGE = {
         "previous_names": [],
     },
 }
+
+# Complete historical World Constructors' Championships (1958 - 2024)
+HISTORICAL_WCC = [
+    {"season": 1958, "constructorId": "vanwall", "constructorName": "Vanwall", "points": 48.0, "drivers": "Stirling Moss, Tony Brooks"},
+    {"season": 1959, "constructorId": "cooper", "constructorName": "Cooper-Climax", "points": 40.0, "drivers": "Jack Brabham, Bruce McLaren"},
+    {"season": 1960, "constructorId": "cooper", "constructorName": "Cooper-Climax", "points": 48.0, "drivers": "Jack Brabham, Bruce McLaren"},
+    {"season": 1961, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 40.0, "drivers": "Phil Hill, Wolfgang von Trips"},
+    {"season": 1962, "constructorId": "brm", "constructorName": "BRM", "points": 42.0, "drivers": "Graham Hill, Richie Ginther"},
+    {"season": 1963, "constructorId": "lotus", "constructorName": "Lotus-Climax", "points": 54.0, "drivers": "Jim Clark, Trevor Taylor"},
+    {"season": 1964, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 45.0, "drivers": "John Surtees, Lorenzo Bandini"},
+    {"season": 1965, "constructorId": "lotus", "constructorName": "Lotus-Climax", "points": 54.0, "drivers": "Jim Clark, Mike Spence"},
+    {"season": 1966, "constructorId": "brabham", "constructorName": "Brabham-Repco", "points": 42.0, "drivers": "Jack Brabham, Denny Hulme"},
+    {"season": 1967, "constructorId": "brabham", "constructorName": "Brabham-Repco", "points": 63.0, "drivers": "Denny Hulme, Jack Brabham"},
+    {"season": 1968, "constructorId": "lotus", "constructorName": "Lotus-Ford", "points": 62.0, "drivers": "Graham Hill, Jackie Oliver"},
+    {"season": 1969, "constructorId": "matra", "constructorName": "Matra-Ford", "points": 66.0, "drivers": "Jackie Stewart, Jean-Pierre Beltoise"},
+    {"season": 1970, "constructorId": "lotus", "constructorName": "Lotus-Ford", "points": 59.0, "drivers": "Jochen Rindt, Emerson Fittipaldi"},
+    {"season": 1971, "constructorId": "tyrrell", "constructorName": "Tyrrell-Ford", "points": 73.0, "drivers": "Jackie Stewart, François Cevert"},
+    {"season": 1972, "constructorId": "lotus", "constructorName": "Lotus-Ford", "points": 61.0, "drivers": "Emerson Fittipaldi, David Walker"},
+    {"season": 1973, "constructorId": "lotus", "constructorName": "Lotus-Ford", "points": 92.0, "drivers": "Emerson Fittipaldi, Ronnie Peterson"},
+    {"season": 1974, "constructorId": "mclaren", "constructorName": "McLaren-Ford", "points": 73.0, "drivers": "Emerson Fittipaldi, Denny Hulme"},
+    {"season": 1975, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 72.5, "drivers": "Niki Lauda, Clay Regazzoni"},
+    {"season": 1976, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 83.0, "drivers": "Niki Lauda, Clay Regazzoni"},
+    {"season": 1977, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 95.0, "drivers": "Niki Lauda, Carlos Reutemann"},
+    {"season": 1978, "constructorId": "lotus", "constructorName": "Lotus-Ford", "points": 86.0, "drivers": "Mario Andretti, Ronnie Peterson"},
+    {"season": 1979, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 113.0, "drivers": "Jody Scheckter, Gilles Villeneuve"},
+    {"season": 1980, "constructorId": "williams", "constructorName": "Williams-Ford", "points": 120.0, "drivers": "Alan Jones, Carlos Reutemann"},
+    {"season": 1981, "constructorId": "williams", "constructorName": "Williams-Ford", "points": 95.0, "drivers": "Carlos Reutemann, Alan Jones"},
+    {"season": 1982, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 74.0, "drivers": "Didier Pironi, Patrick Tambay"},
+    {"season": 1983, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 89.0, "drivers": "René Arnoux, Patrick Tambay"},
+    {"season": 1984, "constructorId": "mclaren", "constructorName": "McLaren-TAG", "points": 143.5, "drivers": "Niki Lauda, Alain Prost"},
+    {"season": 1985, "constructorId": "mclaren", "constructorName": "McLaren-TAG", "points": 90.0, "drivers": "Alain Prost, Niki Lauda"},
+    {"season": 1986, "constructorId": "williams", "constructorName": "Williams-Honda", "points": 141.0, "drivers": "Nigel Mansell, Nelson Piquet"},
+    {"season": 1987, "constructorId": "williams", "constructorName": "Williams-Honda", "points": 137.0, "drivers": "Nelson Piquet, Nigel Mansell"},
+    {"season": 1988, "constructorId": "mclaren", "constructorName": "McLaren-Honda", "points": 199.0, "drivers": "Ayrton Senna, Alain Prost"},
+    {"season": 1989, "constructorId": "mclaren", "constructorName": "McLaren-Honda", "points": 141.0, "drivers": "Alain Prost, Ayrton Senna"},
+    {"season": 1990, "constructorId": "mclaren", "constructorName": "McLaren-Honda", "points": 121.0, "drivers": "Ayrton Senna, Gerhard Berger"},
+    {"season": 1991, "constructorId": "mclaren", "constructorName": "McLaren-Honda", "points": 139.0, "drivers": "Ayrton Senna, Gerhard Berger"},
+    {"season": 1992, "constructorId": "williams", "constructorName": "Williams-Renault", "points": 164.0, "drivers": "Nigel Mansell, Riccardo Patrese"},
+    {"season": 1993, "constructorId": "williams", "constructorName": "Williams-Renault", "points": 168.0, "drivers": "Alain Prost, Damon Hill"},
+    {"season": 1994, "constructorId": "williams", "constructorName": "Williams-Renault", "points": 118.0, "drivers": "Damon Hill, David Coulthard, Nigel Mansell"},
+    {"season": 1995, "constructorId": "benetton", "constructorName": "Benetton-Renault", "points": 137.0, "drivers": "Michael Schumacher, Johnny Herbert"},
+    {"season": 1996, "constructorId": "williams", "constructorName": "Williams-Renault", "points": 175.0, "drivers": "Damon Hill, Jacques Villeneuve"},
+    {"season": 1997, "constructorId": "williams", "constructorName": "Williams-Renault", "points": 123.0, "drivers": "Jacques Villeneuve, Heinz-Harald Frentzen"},
+    {"season": 1998, "constructorId": "mclaren", "constructorName": "McLaren-Mercedes", "points": 156.0, "drivers": "Mika Häkkinen, David Coulthard"},
+    {"season": 1999, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 128.0, "drivers": "Eddie Irvine, Michael Schumacher, Mika Salo"},
+    {"season": 2000, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 170.0, "drivers": "Michael Schumacher, Rubens Barrichello"},
+    {"season": 2001, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 179.0, "drivers": "Michael Schumacher, Rubens Barrichello"},
+    {"season": 2002, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 221.0, "drivers": "Michael Schumacher, Rubens Barrichello"},
+    {"season": 2003, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 158.0, "drivers": "Michael Schumacher, Rubens Barrichello"},
+    {"season": 2004, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 262.0, "drivers": "Michael Schumacher, Rubens Barrichello"},
+    {"season": 2005, "constructorId": "renault", "constructorName": "Renault", "points": 191.0, "drivers": "Fernando Alonso, Giancarlo Fisichella"},
+    {"season": 2006, "constructorId": "renault", "constructorName": "Renault", "points": 206.0, "drivers": "Fernando Alonso, Giancarlo Fisichella"},
+    {"season": 2007, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 204.0, "drivers": "Kimi Räikkönen, Felipe Massa"},
+    {"season": 2008, "constructorId": "ferrari", "constructorName": "Ferrari", "points": 172.0, "drivers": "Felipe Massa, Kimi Räikkönen"},
+    {"season": 2009, "constructorId": "brawn", "constructorName": "Brawn-Mercedes", "points": 172.0, "drivers": "Jenson Button, Rubens Barrichello"},
+    {"season": 2010, "constructorId": "red_bull", "constructorName": "Red Bull-Renault", "points": 498.0, "drivers": "Sebastian Vettel, Mark Webber"},
+    {"season": 2011, "constructorId": "red_bull", "constructorName": "Red Bull-Renault", "points": 650.0, "drivers": "Sebastian Vettel, Mark Webber"},
+    {"season": 2012, "constructorId": "red_bull", "constructorName": "Red Bull-Renault", "points": 460.0, "drivers": "Sebastian Vettel, Mark Webber"},
+    {"season": 2013, "constructorId": "red_bull", "constructorName": "Red Bull-Renault", "points": 596.0, "drivers": "Sebastian Vettel, Mark Webber"},
+    {"season": 2014, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 701.0, "drivers": "Lewis Hamilton, Nico Rosberg"},
+    {"season": 2015, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 703.0, "drivers": "Lewis Hamilton, Nico Rosberg"},
+    {"season": 2016, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 765.0, "drivers": "Nico Rosberg, Lewis Hamilton"},
+    {"season": 2017, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 668.0, "drivers": "Lewis Hamilton, Valtteri Bottas"},
+    {"season": 2018, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 655.0, "drivers": "Lewis Hamilton, Valtteri Bottas"},
+    {"season": 2019, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 739.0, "drivers": "Lewis Hamilton, Valtteri Bottas"},
+    {"season": 2020, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 573.0, "drivers": "Lewis Hamilton, Valtteri Bottas"},
+    {"season": 2021, "constructorId": "mercedes", "constructorName": "Mercedes", "points": 613.5, "drivers": "Lewis Hamilton, Valtteri Bottas"},
+    {"season": 2022, "constructorId": "red_bull", "constructorName": "Red Bull-RBPT", "points": 759.0, "drivers": "Max Verstappen, Sergio Perez"},
+    {"season": 2023, "constructorId": "red_bull", "constructorName": "Red Bull-Honda RBPT", "points": 860.0, "drivers": "Max Verstappen, Sergio Perez"},
+    {"season": 2024, "constructorId": "mclaren", "constructorName": "McLaren-Mercedes", "points": 666.0, "drivers": "Lando Norris, Oscar Piastri"},
+]
+
+# Complete historical World Drivers' Championships (1950 - 2024)
+HISTORICAL_WDC = [
+    {"season": 1950, "constructorId": "alfa", "driverName": "Giuseppe Farina", "points": 30.0},
+    {"season": 1951, "constructorId": "alfa", "driverName": "Juan Manuel Fangio", "points": 31.0},
+    {"season": 1952, "constructorId": "ferrari", "driverName": "Alberto Ascari", "points": 36.0},
+    {"season": 1953, "constructorId": "ferrari", "driverName": "Alberto Ascari", "points": 34.5},
+    {"season": 1954, "constructorId": "mercedes", "driverName": "Juan Manuel Fangio", "points": 42.0},
+    {"season": 1955, "constructorId": "mercedes", "driverName": "Juan Manuel Fangio", "points": 40.0},
+    {"season": 1956, "constructorId": "ferrari", "driverName": "Juan Manuel Fangio", "points": 30.0},
+    {"season": 1957, "constructorId": "maserati", "driverName": "Juan Manuel Fangio", "points": 40.0},
+    {"season": 1958, "constructorId": "ferrari", "driverName": "Mike Hawthorn", "points": 42.0},
+    {"season": 1959, "constructorId": "cooper", "driverName": "Jack Brabham", "points": 31.0},
+    {"season": 1960, "constructorId": "cooper", "driverName": "Jack Brabham", "points": 43.0},
+    {"season": 1961, "constructorId": "ferrari", "driverName": "Phil Hill", "points": 34.0},
+    {"season": 1962, "constructorId": "brm", "driverName": "Graham Hill", "points": 42.0},
+    {"season": 1963, "constructorId": "lotus", "driverName": "Jim Clark", "points": 54.0},
+    {"season": 1964, "constructorId": "ferrari", "driverName": "John Surtees", "points": 40.0},
+    {"season": 1965, "constructorId": "lotus", "driverName": "Jim Clark", "points": 54.0},
+    {"season": 1966, "constructorId": "brabham", "driverName": "Jack Brabham", "points": 42.0},
+    {"season": 1967, "constructorId": "brabham", "driverName": "Denny Hulme", "points": 51.0},
+    {"season": 1968, "constructorId": "lotus", "driverName": "Graham Hill", "points": 48.0},
+    {"season": 1969, "constructorId": "matra", "driverName": "Jackie Stewart", "points": 63.0},
+    {"season": 1970, "constructorId": "lotus", "driverName": "Jochen Rindt", "points": 45.0},
+    {"season": 1971, "constructorId": "tyrrell", "driverName": "Jackie Stewart", "points": 62.0},
+    {"season": 1972, "constructorId": "lotus", "driverName": "Emerson Fittipaldi", "points": 61.0},
+    {"season": 1973, "constructorId": "tyrrell", "driverName": "Jackie Stewart", "points": 71.0},
+    {"season": 1974, "constructorId": "mclaren", "driverName": "Emerson Fittipaldi", "points": 55.0},
+    {"season": 1975, "constructorId": "ferrari", "driverName": "Niki Lauda", "points": 64.5},
+    {"season": 1976, "constructorId": "mclaren", "driverName": "James Hunt", "points": 69.0},
+    {"season": 1977, "constructorId": "ferrari", "driverName": "Niki Lauda", "points": 72.0},
+    {"season": 1978, "constructorId": "lotus", "driverName": "Mario Andretti", "points": 64.0},
+    {"season": 1979, "constructorId": "ferrari", "driverName": "Jody Scheckter", "points": 51.0},
+    {"season": 1980, "constructorId": "williams", "driverName": "Alan Jones", "points": 67.0},
+    {"season": 1981, "constructorId": "brabham", "driverName": "Nelson Piquet", "points": 50.0},
+    {"season": 1982, "constructorId": "williams", "driverName": "Keke Rosberg", "points": 44.0},
+    {"season": 1983, "constructorId": "brabham", "driverName": "Nelson Piquet", "points": 59.0},
+    {"season": 1984, "constructorId": "mclaren", "driverName": "Niki Lauda", "points": 72.0},
+    {"season": 1985, "constructorId": "mclaren", "driverName": "Alain Prost", "points": 73.0},
+    {"season": 1986, "constructorId": "mclaren", "driverName": "Alain Prost", "points": 72.0},
+    {"season": 1987, "constructorId": "williams", "driverName": "Nelson Piquet", "points": 73.0},
+    {"season": 1988, "constructorId": "mclaren", "driverName": "Ayrton Senna", "points": 90.0},
+    {"season": 1989, "constructorId": "mclaren", "driverName": "Alain Prost", "points": 76.0},
+    {"season": 1990, "constructorId": "mclaren", "driverName": "Ayrton Senna", "points": 78.0},
+    {"season": 1991, "constructorId": "mclaren", "driverName": "Ayrton Senna", "points": 96.0},
+    {"season": 1992, "constructorId": "williams", "driverName": "Nigel Mansell", "points": 108.0},
+    {"season": 1993, "constructorId": "williams", "driverName": "Alain Prost", "points": 99.0},
+    {"season": 1994, "constructorId": "benetton", "driverName": "Michael Schumacher", "points": 92.0},
+    {"season": 1995, "constructorId": "benetton", "driverName": "Michael Schumacher", "points": 102.0},
+    {"season": 1996, "constructorId": "williams", "driverName": "Damon Hill", "points": 97.0},
+    {"season": 1997, "constructorId": "williams", "driverName": "Jacques Villeneuve", "points": 81.0},
+    {"season": 1998, "constructorId": "mclaren", "driverName": "Mika Häkkinen", "points": 100.0},
+    {"season": 1999, "constructorId": "mclaren", "driverName": "Mika Häkkinen", "points": 76.0},
+    {"season": 2000, "constructorId": "ferrari", "driverName": "Michael Schumacher", "points": 108.0},
+    {"season": 2001, "constructorId": "ferrari", "driverName": "Michael Schumacher", "points": 123.0},
+    {"season": 2002, "constructorId": "ferrari", "driverName": "Michael Schumacher", "points": 144.0},
+    {"season": 2003, "constructorId": "ferrari", "driverName": "Michael Schumacher", "points": 93.0},
+    {"season": 2004, "constructorId": "ferrari", "driverName": "Michael Schumacher", "points": 148.0},
+    {"season": 2005, "constructorId": "renault", "driverName": "Fernando Alonso", "points": 133.0},
+    {"season": 2006, "constructorId": "renault", "driverName": "Fernando Alonso", "points": 134.0},
+    {"season": 2007, "constructorId": "ferrari", "driverName": "Kimi Räikkönen", "points": 110.0},
+    {"season": 2008, "constructorId": "mclaren", "driverName": "Lewis Hamilton", "points": 98.0},
+    {"season": 2009, "constructorId": "brawn", "driverName": "Jenson Button", "points": 95.0},
+    {"season": 2010, "constructorId": "red_bull", "driverName": "Sebastian Vettel", "points": 256.0},
+    {"season": 2011, "constructorId": "red_bull", "driverName": "Sebastian Vettel", "points": 392.0},
+    {"season": 2012, "constructorId": "red_bull", "driverName": "Sebastian Vettel", "points": 281.0},
+    {"season": 2013, "constructorId": "red_bull", "driverName": "Sebastian Vettel", "points": 397.0},
+    {"season": 2014, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 384.0},
+    {"season": 2015, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 381.0},
+    {"season": 2016, "constructorId": "mercedes", "driverName": "Nico Rosberg", "points": 385.0},
+    {"season": 2017, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 363.0},
+    {"season": 2018, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 408.0},
+    {"season": 2019, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 413.0},
+    {"season": 2020, "constructorId": "mercedes", "driverName": "Lewis Hamilton", "points": 347.0},
+    {"season": 2021, "constructorId": "red_bull", "driverName": "Max Verstappen", "points": 395.5},
+    {"season": 2022, "constructorId": "red_bull", "driverName": "Max Verstappen", "points": 454.0},
+    {"season": 2023, "constructorId": "red_bull", "driverName": "Max Verstappen", "points": 575.0},
+    {"season": 2024, "constructorId": "red_bull", "driverName": "Max Verstappen", "points": 429.0},
+]
 
 
 def _resolve_team_lineage(constructor_id):
@@ -204,6 +353,25 @@ def get_driver_standings(year, round_num):
         standings = ergast.get_driver_standings(season=year, round=round_num).content[0]
         return standings
     except Exception:
+        # Fallback via direct Jolpica API
+        try:
+            payload = _fetch_json(f"{ERGAST_BASE_URL}/{int(year)}/{int(round_num)}/driverStandings.json")
+            standings_list = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
+            if standings_list:
+                rows = standings_list[0].get("DriverStandings", [])
+                records = []
+                for r in rows:
+                    drv = r.get("Driver", {})
+                    records.append({
+                        "position": r.get("position", ""),
+                        "givenName": drv.get("givenName", ""),
+                        "familyName": drv.get("familyName", ""),
+                        "points": float(r.get("points", 0)),
+                        "wins": int(r.get("wins", 0)),
+                    })
+                return pd.DataFrame(records)
+        except Exception:
+            pass
         return pd.DataFrame()
 
 
@@ -214,6 +382,23 @@ def get_constructor_standings(year, round_num):
         standings = ergast.get_constructor_standings(season=year, round=round_num).content[0]
         return standings
     except Exception:
+        try:
+            payload = _fetch_json(f"{ERGAST_BASE_URL}/{int(year)}/{int(round_num)}/constructorStandings.json")
+            standings_list = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
+            if standings_list:
+                rows = standings_list[0].get("ConstructorStandings", [])
+                records = []
+                for r in rows:
+                    c = r.get("Constructor", {})
+                    records.append({
+                        "position": r.get("position", ""),
+                        "constructorName": c.get("name", ""),
+                        "points": float(r.get("points", 0)),
+                        "wins": int(r.get("wins", 0)),
+                    })
+                return pd.DataFrame(records)
+        except Exception:
+            pass
         return pd.DataFrame()
 
 
@@ -352,7 +537,7 @@ def _fetch_json(url):
 def _fetch_ergast_path(path):
     for base_url in (ERGAST_BASE_URL, ERGAST_FALLBACK_BASE_URL):
         payload = _fetch_json(f"{base_url}/{path}")
-        if payload:
+        if payload and payload.get("MRData"):
             return payload
     return {}
 
@@ -530,83 +715,16 @@ def get_constructor_season_driver_points(constructor_id, season):
     return drivers_df
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=86400)
 def get_all_wcc_titles():
-    payload = _fetch_ergast_path("constructorStandings/1.json?limit=1000")
-    standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
-    if not standings_lists:
-        return pd.DataFrame(columns=["season", "constructorId", "constructorName", "points"])
-
-    rows = []
-    for season_row in standings_lists:
-        season = int(season_row.get("season", 0) or 0)
-        standings = season_row.get("ConstructorStandings", [])
-        if not standings:
-            continue
-        winner = standings[0]
-        constructor = winner.get("Constructor", {})
-        try:
-            points = float(winner.get("points", 0.0))
-        except (TypeError, ValueError):
-            points = 0.0
-
-        rows.append(
-            {
-                "season": season,
-                "constructorId": constructor.get("constructorId", ""),
-                "constructorName": constructor.get("name", ""),
-                "points": points,
-            }
-        )
-
-    if not rows:
-        return pd.DataFrame(columns=["season", "constructorId", "constructorName", "points"])
-
-    titles = pd.DataFrame(rows)
-    titles = titles.sort_values("season").reset_index(drop=True)
-    return titles
+    """Returns complete historical World Constructors' Championship titles (1958-2024)."""
+    return pd.DataFrame(HISTORICAL_WCC)
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=86400)
 def get_all_wdc_titles():
-    payload = _fetch_ergast_path("driverStandings/1.json?limit=1000")
-    standings_lists = payload.get("MRData", {}).get("StandingsTable", {}).get("StandingsLists", [])
-    if not standings_lists:
-        return pd.DataFrame(columns=["season", "constructorId", "driverName", "points"])
-
-    rows = []
-    for season_row in standings_lists:
-        season = int(season_row.get("season", 0) or 0)
-        standings = season_row.get("DriverStandings", [])
-        if not standings:
-            continue
-
-        winner = standings[0]
-        driver = winner.get("Driver", {})
-        constructors = winner.get("Constructors", [])
-        constructor = constructors[0] if constructors else {}
-        driver_name = f"{driver.get('givenName', '')} {driver.get('familyName', '')}".strip()
-
-        try:
-            points = float(winner.get("points", 0.0))
-        except (TypeError, ValueError):
-            points = 0.0
-
-        rows.append(
-            {
-                "season": season,
-                "constructorId": constructor.get("constructorId", ""),
-                "driverName": driver_name or "Unknown Driver",
-                "points": points,
-            }
-        )
-
-    if not rows:
-        return pd.DataFrame(columns=["season", "constructorId", "driverName", "points"])
-
-    titles = pd.DataFrame(rows)
-    titles = titles.sort_values("season").reset_index(drop=True)
-    return titles
+    """Returns complete historical World Drivers' Championship titles (1950-2024)."""
+    return pd.DataFrame(HISTORICAL_WDC)
 
 
 @st.cache_data(ttl=86400)
@@ -674,21 +792,11 @@ def get_team_wiki_profile(constructor_id, constructor_name, selected_season):
     wcc_entries = []
     if not team_wcc.empty:
         for _, row in team_wcc.iterrows():
-            season = int(row["season"])
-            winning_constructor_id = row.get("constructorId", constructor_id)
-            drivers_df = get_constructor_season_driver_points(winning_constructor_id, season)
-            if drivers_df.empty:
-                drivers_text = "Drivers unavailable"
-            else:
-                drivers_text = ", ".join(
-                    [f"{drow['driverName']} ({drow['points']:.1f})" for _, drow in drivers_df.iterrows()]
-                )
-
             wcc_entries.append(
                 {
-                    "season": season,
+                    "season": int(row["season"]),
                     "points": float(row["points"]),
-                    "drivers": drivers_text,
+                    "drivers": row.get("drivers", "Drivers recorded"),
                 }
             )
 
@@ -774,8 +882,6 @@ def get_driver_season_results(driver_id, season):
 def get_driver_championship_progression(driver_id, season):
     calendar = get_season_race_calendar(int(season))
     if calendar.empty:
-        # Safe fallback: if season calendar endpoint is unavailable,
-        # derive rounds from season results so chart data can still render.
         season_results = get_driver_season_results(driver_id, int(season))
         if season_results.empty:
             return pd.DataFrame(columns=["Round", "RaceName", "championship_points"])
@@ -821,7 +927,6 @@ def get_driver_championship_progression(driver_id, season):
     if found_any_round:
         return progression
 
-    # Fallback when standings endpoint is unavailable: cumulative race points.
     season_results = get_driver_season_results(driver_id, int(season))
     if season_results.empty:
         return pd.DataFrame(columns=["Round", "RaceName", "championship_points"])
@@ -869,7 +974,6 @@ def get_driver_results_history(driver_id):
 
         offset += len(race_page)
 
-        # Break safely if endpoint stops advancing or all pages are consumed.
         if new_count == 0 or offset >= total:
             break
 

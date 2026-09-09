@@ -1,14 +1,20 @@
 # FastF1 cache
 .fastf1_cache/
 f1_cache/
+fastf1_cache/
 
 # Local virtual environments
 .venv/
 venv/
 env/
+ENV/
 
-# Python cache
+# Python cache & build artifacts
 __pycache__/
+*/__pycache__/
+**__pycache__/**
+*.py[cod]
+*$py.class
 *.pyc
 *.pyo
 *.pyd
@@ -18,15 +24,24 @@ __pycache__/
 .coverage
 coverage.xml
 htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Project Planning & Internal Notes
+plan/
+scratch/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
 
 # SQLite database files
 *.sqlite
+*.db
 
-# Matplotlib cache (you have this inside f1_cache)
+# Matplotlib cache
 matplotlib/
+.matplotlib/
 
 # Logs and local runtime output
 *.log
@@ -43,9 +58,10 @@ logs/
 *.tmp
 *.bak
 
-# Optional: system files
+# System files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDEs and Editors
 .vscode/
@@ -56,3 +72,4 @@ Thumbs.db
 # Environment Variables
 .env
 .env.local
+.env.*

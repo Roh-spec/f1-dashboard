@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 import streamlit as st
 import sessions
+from ui import get_team_color
 
 
 get_driver_directory = getattr(sessions, "get_driver_directory", None)
@@ -32,19 +33,19 @@ def _render_driver_profile(driver_id: str) -> None:
     st.markdown(
         "\n".join(
             [
-                f"- Nationality: {profile['nationality']}",
-                f"- Races: {profile['races']}",
-                f"- Wins: {profile['wins']}",
-                f"- Points: {profile['points']:.1f}",
-                f"- Debut race: {profile['debut']}",
-                f"- Most points in a season: {profile['most_points']}",
-                f"- Least points in a season: {profile['least_points']}",
+                f"- **Nationality:** {profile['nationality']}",
+                f"- **Races:** {profile['races']}",
+                f"- **Wins:** {profile['wins']}",
+                f"- **Points:** {profile['points']:.1f}",
+                f"- **Debut race:** {profile['debut']}",
+                f"- **Most points in a season:** {profile['most_points']}",
+                f"- **Least points in a season:** {profile['least_points']}",
             ]
         )
     )
 
     history_blurb = get_driver_history_blurb(profile['fullName'])
-    st.markdown("<h3>Brief History</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>Career Brief</h3>", unsafe_allow_html=True)
     st.write(f"> {history_blurb}")
 
 
@@ -76,16 +77,16 @@ def render_page() -> None:
         st.markdown("<p class='section-kicker'>Driver Intelligence</p>", unsafe_allow_html=True)
         st.markdown("<h1 class='hero-title'>DRIVER COMPARISON & HISTORY</h1>", unsafe_allow_html=True)
         st.markdown(
-            "<p class='hero-subtitle'>Compare two Formula 1 drivers by career profile and points scored race-by-race.</p>",
+            "<p class='hero-subtitle'>Compare two Formula 1 drivers by career profile and cumulative round-by-round points.</p>",
             unsafe_allow_html=True,
         )
 
     with st.container(border=True, key="dialog_driver_select"):
         st.markdown("<p class='section-kicker'>Comparison Setup</p>", unsafe_allow_html=True)
         st.markdown("<h2>Select Drivers</h2>", unsafe_allow_html=True)
-        current_year = pd.Timestamp.now().year
+        current_year = 2025
         season_options = list(range(current_year, 1999, -1))
-        selected_season = st.selectbox("SEASON", season_options, index=0)
+        selected_season = st.selectbox("SEASON", season_options, index=1)
 
         season_directory = get_drivers_for_season(int(selected_season))
         if season_directory.empty:
@@ -129,7 +130,7 @@ def render_page() -> None:
         st.markdown("<p class='section-kicker'>Points Comparison</p>", unsafe_allow_html=True)
         st.markdown("<h2>Championship Points vs Races</h2>", unsafe_allow_html=True)
         st.markdown(
-            f"<p class='panel-note'>Running championship points by round for season {selected_season}. Graph is shown only if both drivers raced that season.</p>",
+            f"<p class='panel-note' style='color:#8e929b; font-size:20px;'>Running championship points by round for season {selected_season}.</p>",
             unsafe_allow_html=True,
         )
 
@@ -137,7 +138,7 @@ def render_page() -> None:
         series_b = _build_comparison_series(driver_two_id, driver_two, int(selected_season))
 
         if series_a.empty or series_b.empty:
-            st.info("Selected season does not contain race data for both drivers. Graph hidden.")
+            st.info("Selected season does not contain race data for both drivers.")
             return
 
         race_rounds = pd.concat(
@@ -179,18 +180,25 @@ def render_page() -> None:
             long_df.groupby("Driver")["ChampionshipPoints"].diff().fillna(long_df["ChampionshipPoints"])
         )
 
+        color_a = get_team_color(driver_one, default="#ff8000")
+        color_b = get_team_color(driver_two, default="#1e41ff")
+        if color_a.lower() == color_b.lower():
+            color_b = "#f5a623" if color_a != "#f5a623" else "#ffffff"
+
         try:
             import altair as alt
 
             hover = alt.selection_point(fields=["Round"], nearest=True, on="mouseover", empty=False)
 
+            color_scale = alt.Scale(domain=[driver_one, driver_two], range=[color_a, color_b])
+
             line = (
                 alt.Chart(long_df)
                 .mark_line(strokeWidth=3)
                 .encode(
-                    x=alt.X("Round:Q", axis=alt.Axis(title="Race Round", tickMinStep=1, labelAngle=0)),
-                    y=alt.Y("ChampionshipPoints:Q", axis=alt.Axis(title="Championship Points")),
-                    color=alt.Color("Driver:N", legend=alt.Legend(title="Driver")),
+                    x=alt.X("Round:Q", axis=alt.Axis(title="Race Round", tickMinStep=1, labelAngle=0, labelColor="#8b949e", titleColor="#f0f3f6", gridColor="#262c36")),
+                    y=alt.Y("ChampionshipPoints:Q", axis=alt.Axis(title="Championship Points", labelColor="#8b949e", titleColor="#f0f3f6", gridColor="#262c36")),
+                    color=alt.Color("Driver:N", scale=color_scale, legend=alt.Legend(title="Driver", labelColor="#f0f3f6", titleColor="#ffffff")),
                 )
             )
 
@@ -200,22 +208,22 @@ def render_page() -> None:
                 .encode(
                     x="Round:Q",
                     y="ChampionshipPoints:Q",
-                    color="Driver:N",
+                    color=alt.Color("Driver:N", scale=color_scale),
                     tooltip=[
                         alt.Tooltip("Driver:N", title="Driver"),
                         alt.Tooltip("Round:Q", title="Round", format=".0f"),
                         alt.Tooltip("RaceName:N", title="Race"),
-                        alt.Tooltip("ChampionshipPoints:Q", title="Championship Points", format=".1f"),
-                        alt.Tooltip("PointsGained:Q", title="Points This Round", format=".1f"),
+                        alt.Tooltip("ChampionshipPoints:Q", title="Total Points", format=".1f"),
+                        alt.Tooltip("PointsGained:Q", title="Round Points", format=".1f"),
                     ],
-                    opacity=alt.condition(hover, alt.value(1.0), alt.value(0.75)),
+                    opacity=alt.condition(hover, alt.value(1.0), alt.value(0.7)),
                 )
                 .add_params(hover)
             )
 
             rule = (
                 alt.Chart(long_df)
-                .mark_rule(color="#888888", strokeDash=[4, 4])
+                .mark_rule(color="#e10600", strokeDash=[4, 4], opacity=0.7)
                 .encode(x="Round:Q")
                 .transform_filter(hover)
             )
@@ -224,8 +232,10 @@ def render_page() -> None:
                 (line + points + rule)
                 .properties(
                     height=460,
-                    title=f"{selected_season} Championship Points Progression (Interactive)",
+                    title=f"{selected_season} Championship Points Progression",
                 )
+                .configure_view(strokeWidth=0)
+                .configure_title(color="#f0f3f6", font="monospace", fontSize=13)
                 .interactive()
             )
 
@@ -233,22 +243,18 @@ def render_page() -> None:
             st.caption("Hover points for round details. Drag to pan and use scroll to zoom.")
             return
         except Exception:
-            # Fallback: keep a styled matplotlib chart if Altair cannot render.
             pass
 
-        fig, ax = plt.subplots(figsize=(11, 5.4))
-        fig.patch.set_facecolor("#1f1b17")
-        ax.set_facecolor("#231e18")
-
-        color_a = "#ff8f1f"
-        color_b = "#42d97a"
+        # Matplotlib fallback
+        fig, ax = plt.subplots(figsize=(11, 5.2))
+        fig.patch.set_facecolor("#161b22")
+        ax.set_facecolor("#161b22")
 
         ax.plot(
             chart_df["Round"],
             chart_df[driver_one],
             marker="o",
             markersize=6,
-            markeredgewidth=0.0,
             linewidth=2.4,
             color=color_a,
             label=driver_one,
@@ -259,7 +265,6 @@ def render_page() -> None:
             chart_df[driver_two],
             marker="o",
             markersize=6,
-            markeredgewidth=0.0,
             linewidth=2.4,
             color=color_b,
             label=driver_two,
@@ -268,20 +273,19 @@ def render_page() -> None:
 
         ax.set_title(
             f"{selected_season} Championship Points Progression",
-            color="#f2e8d5",
-            fontsize=13,
+            color="#f0f3f6",
+            fontsize=12,
             pad=10,
             fontweight="bold",
         )
-        ax.set_xlabel("Race Round", color="#e8dbc5", fontsize=11)
-        ax.set_ylabel("Championship Points", color="#e8dbc5", fontsize=11)
+        ax.set_xlabel("Race Round", color="#8b949e", fontsize=10)
+        ax.set_ylabel("Championship Points", color="#8b949e", fontsize=10)
 
         for spine in ax.spines.values():
-            spine.set_color("#5b5145")
-            spine.set_linewidth(1.0)
+            spine.set_color("#262c36")
 
-        ax.tick_params(axis="x", colors="#dfd0b7", labelsize=10)
-        ax.tick_params(axis="y", colors="#dfd0b7", labelsize=10)
+        ax.tick_params(axis="x", colors="#8b949e", labelsize=9)
+        ax.tick_params(axis="y", colors="#8b949e", labelsize=9)
 
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         y_max = float(max(chart_df[driver_one].max(), chart_df[driver_two].max(), 1.0))
@@ -293,47 +297,21 @@ def render_page() -> None:
         ax.set_xlim(max(1, x_min - 0.3), x_max + 0.3)
         ax.set_ylim(0, y_max * 1.08)
 
-        ax.grid(which="major", color="#6a5e4f", linestyle="--", linewidth=1.0, alpha=0.35)
+        ax.grid(which="major", color="#262833", linestyle="--", linewidth=0.8, alpha=0.5)
         ax.set_axisbelow(True)
 
         ax.legend(
             loc="upper left",
             frameon=True,
-            facecolor="#2d261f",
-            edgecolor="#5b5145",
-            labelcolor="#f2e8d5",
-            fontsize=10,
-        )
-
-        last_round = x_max
-        last_a = float(chart_df.loc[chart_df["Round"] == last_round, driver_one].iloc[-1])
-        last_b = float(chart_df.loc[chart_df["Round"] == last_round, driver_two].iloc[-1])
-        ax.annotate(
-            f"{last_a:.1f}",
-            (last_round, last_a),
-            textcoords="offset points",
-            xytext=(8, -8),
-            color=color_a,
-            fontsize=10,
-            fontweight="bold",
-        )
-        ax.annotate(
-            f"{last_b:.1f}",
-            (last_round, last_b),
-            textcoords="offset points",
-            xytext=(8, 8),
-            color=color_b,
-            fontsize=10,
-            fontweight="bold",
+            facecolor="#161820",
+            edgecolor="#262833",
+            labelcolor="#f5f5f7",
+            fontsize=9,
         )
 
         fig.tight_layout()
-
         st.pyplot(fig, use_container_width=True)
         plt.close(fig)
 
-
-if st.button("<- RETURN TO RACE SELECT"):
-    st.switch_page("pages/1_Race_Select.py")
 
 render_page()

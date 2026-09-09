@@ -4,667 +4,1267 @@ from contextlib import contextmanager
 from html import escape
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 
 def inject_retro_css() -> None:
+    """Injects sleek modern Formula 1 telemetry styling (Circuit Slate aesthetic)."""
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            --paper: #fbf7ee;
-            --paper-deep: #e5dccb;
-            --ink: #211d18;
-            --muted: #6f675b;
-            --line: #211d18;
-            --red: #9d2b22;
-            --red-glow: rgba(157, 43, 34, 0.16);
-            --black-glow: rgba(33, 29, 24, 0.16);
+            --bg-page: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #1c212a;
+            --bg-card-elevated: #1c212a;
+            --border-card: #262c36;
+            --border-card-hover: #374151;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+
+            --accent-red: #e10600;
+            --accent-red-hover: #ff1e16;
+            --accent-red-tint: rgba(225, 6, 0, 0.18);
+            --accent-red-border: rgba(225, 6, 0, 0.45);
+
+            --accent-amber: #f5a623;
+            --accent-amber-tint: rgba(245, 166, 35, 0.15);
+
+            --accent-teal: #e10600;
+            --accent-teal-hover: #ff1e16;
+            --accent-teal-tint: rgba(225, 6, 0, 0.18);
+            --accent-teal-border: rgba(225, 6, 0, 0.45);
+
+            --text-heading: #f0f3f6;
+            --text-body: #c9d1d9;
+            --text-muted: #8b949e;
+
+            --radius-card: 0px;
+            --radius-pill: 9999px;
+            --radius-button: 0px;
+            --left-bar-width: 3px;
         }
 
+        html, body {
+            scroll-behavior: smooth !important;
+        }
+
+        /* CRITICAL: Eliminate Streamlit top padding and header completely */
+        header[data-testid="stHeader"],
+        header {
+            display: none !important;
+            height: 0px !important;
+            min-height: 0px !important;
+            padding: 0px !important;
+            margin: 0px !important;
+            visibility: hidden !important;
+        }
+
+        [data-testid="stToolbar"] {
+            display: none !important;
+        }
+
+        [data-testid="stAppViewContainer"] {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        [data-testid="stMainBlockContainer"],
+        .main .block-container,
+        .stMain .block-container,
+        div[data-testid="stMainBlockContainer"],
+        section[data-testid="stMain"] > div {
+            padding-top: 0px !important;
+            padding-left: 24px !important;
+            padding-right: 24px !important;
+            padding-bottom: 3.5rem !important;
+            margin-top: 0px !important;
+            max-width: 1560px !important;
+        }
+
+        /* Global application background: Circuit Slate (#0d1117) */
         .stApp {
-            background:
-                radial-gradient(circle at 12% 14%, rgba(157, 43, 34, 0.08), transparent 18%),
-                radial-gradient(circle at 84% 10%, rgba(33, 29, 24, 0.08), transparent 20%),
-                linear-gradient(rgba(23, 23, 23, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(23, 23, 23, 0.03) 1px, transparent 1px),
-                linear-gradient(180deg, #fffaf6 0%, #f6e6d8 100%);
-            background-size: auto, auto, 24px 24px, 24px 24px, auto;
-            color: var(--ink);
-            font-family: 'VT323', monospace;
-            font-size: 22px;
+            background-color: var(--bg-page) !important;
+            background: var(--bg-page) !important;
+            color: var(--text-body);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14.5px;
         }
 
-        .stApp::before {
-            content: "";
-            pointer-events: none;
-            position: fixed;
-            inset: 0;
-            z-index: 998;
-            background: repeating-linear-gradient(
-                to bottom,
-                rgba(23, 23, 23, 0.04) 0,
-                rgba(23, 23, 23, 0.04) 1px,
-                transparent 1px,
-                transparent 5px
-            );
-            mix-blend-mode: multiply;
-        }
-
-        .main .block-container {
-            max-width: 1500px;
-            padding-top: 1.6rem;
-            padding-bottom: 3rem;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Press Start 2P', cursive !important;
-            color: var(--ink) !important;
-            text-shadow: 3px 3px 0 var(--red-glow);
-            text-transform: uppercase;
-            margin-bottom: 1rem;
+        /* F1 Broadcast Timing-Tower Typography */
+        h1, h2, h3, h4 {
+            font-family: 'Titillium Web', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+            color: var(--text-heading) !important;
+            margin: 0 0 0.5rem 0 !important;
         }
 
         h1 {
-            font-size: clamp(2.4rem, 5vw, 5.4rem) !important;
-            line-height: 0.9;
-            margin-top: 0;
+            font-size: clamp(1.8rem, 3.2vw, 2.6rem) !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.01em !important;
+            line-height: 1.1;
         }
 
         h2 {
-            font-size: clamp(1.3rem, 2vw, 2rem) !important;
+            font-size: clamp(1.2rem, 2vw, 1.6rem) !important;
+            font-weight: 700 !important;
+            color: var(--text-heading) !important;
         }
 
         h3 {
-            font-size: clamp(1rem, 1.4vw, 1.4rem) !important;
+            font-size: clamp(1rem, 1.4vw, 1.3rem) !important;
+            color: var(--text-heading) !important;
         }
 
-        p, li, label, .stMarkdown, .stText {
-            font-family: 'VT323', monospace !important;
-            color: var(--ink);
+        /* Tabular Monospace for Numbers, Timestamps, and Metrics */
+        .mono-num,
+        .stat-mono,
+        .timing-mono,
+        code {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-variant-numeric: tabular-nums !important;
         }
 
-        p, li {
-            font-size: 24px !important;
+        p, li, label, .stMarkdown {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            font-size: 14.5px !important;
+            line-height: 1.55;
+            color: var(--text-body);
         }
 
         a {
-            color: var(--ink);
+            color: var(--accent-teal) !important;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        a:hover {
+            color: var(--accent-teal-hover) !important;
         }
 
-        .hero {
-            border: 3px solid var(--line);
-            border-radius: 6px;
-            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-            box-shadow: 8px 8px 0 var(--line);
-            padding: 24px 24px 22px;
-            margin-bottom: 22px;
-            position: relative;
-            overflow: hidden;
+        /* Top Navigation Bar: Sticky, Flush, Timing-Tower Base Strip, Sharp Edges */
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) {
+            position: sticky !important;
+            top: 0px !important;
+            z-index: 999999 !important;
+            background: #10141a !important;
+            background-color: #10141a !important;
+            border-bottom: 2px solid #21262d !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+            border-radius: 0px !important;
+            padding: 8px 24px !important;
+            margin-top: 0px !important;
+            margin-bottom: 24px !important;
+            align-items: center !important;
         }
 
-        .top-nav-shell {
-            border: 3px solid var(--line);
-            border-radius: 6px;
-            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-            box-shadow: 6px 6px 0 var(--line);
-            margin-bottom: 18px;
-            padding: 10px 14px;
-        }
-
-        .top-nav-title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.85rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin: 0;
-            color: var(--ink);
-        }
-
-        div[data-testid="stPageLink"] a {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            background: #fffaf2;
-            box-shadow: 3px 3px 0 var(--line);
-            color: var(--ink) !important;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.62rem;
-            letter-spacing: 0.04em;
-            line-height: 1;
-            min-height: 34px;
-            padding: 8px 10px;
-            text-transform: uppercase;
-        }
-
-        .hero::after {
-            content: "";
-            display: block;
-            height: 6px;
-            margin-top: 18px;
-            background: linear-gradient(90deg, var(--red), var(--ink));
-        }
-
-        .eyebrow {
-            margin: 0 0 10px;
-            color: var(--muted);
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-        }
-
-        .hero-title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: clamp(2.7rem, 6.4vw, 6.2rem);
-            line-height: 0.95;
-            letter-spacing: 0.02em;
-            margin: 0;
-            text-shadow: 3px 3px 0 var(--red-glow);
-        }
-
-        .hero-subtitle {
-            max-width: 980px;
-            margin: 14px 0 0;
-            font-size: 1.15rem;
-        }
-
-        .badge-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .badge {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            background: #ffffff;
-            box-shadow: 4px 4px 0 var(--red);
-            color: var(--ink);
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            padding: 8px 12px;
-            text-transform: uppercase;
-        }
-
-        .section-kicker {
-            color: var(--muted);
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            margin: 0 0 8px;
-            text-transform: uppercase;
-        }
-
-        .section-ribbon {
-            border-top: 2px solid var(--line);
-            border-bottom: 2px solid var(--line);
-            background: linear-gradient(90deg, var(--red-glow), var(--black-glow));
-            color: var(--ink);
-            margin: 8px 0 20px;
-            padding: 10px 14px;
-            font-size: 0.84rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-
-        .section-ribbon span {
-            display: inline-block;
-            margin-right: 12px;
-        }
-
-        .summary-strip,
-        .panel-grid {
-            display: grid;
-            gap: 16px;
-            margin-top: 18px;
-        }
-
-        .summary-strip {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-
-        .panel-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .summary-card,
-        .status-card,
-        .practice-card,
-        div[class*="st-key-track_archive_panel"],
-        div[class*="st-key-circuit_map_panel"] {
-            border: 3px solid var(--line);
-            border-radius: 6px;
-            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-            box-shadow: 6px 6px 0 var(--line);
-        }
-
-        .summary-card {
-            min-height: 116px;
-            padding: 16px 18px 14px;
-        }
-
-        .summary-label {
-            color: var(--muted);
-            font-size: 0.74rem;
-            font-weight: 700;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-        }
-
-        .summary-value {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1.05rem;
-            line-height: 1.35;
-            margin: 14px 0 8px;
-            text-shadow: 2px 2px 0 var(--red-glow);
-        }
-
-        .summary-note {
-            color: var(--muted);
-            margin: 0;
-            font-size: 1rem;
-            line-height: 1.25;
-        }
-
-        .panel-shell {
-            border: 3px solid var(--line);
-            border-radius: 6px;
-            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-            box-shadow: 6px 6px 0 var(--line);
-            padding: 16px;
-        }
-
-        .panel-note {
-            color: var(--muted);
-            font-size: 0.84rem;
-            margin-top: -4px;
-        }
-
-        div[data-testid="stVerticalBlockBorderWrapper"],
-        div[class*="st-key-dialog_"] {
-            border: 3px solid var(--line);
-            border-radius: 6px;
-            background: linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-            box-shadow: 8px 8px 0 var(--line);
-            margin: 0 0 26px;
-            padding: 18px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        div[data-testid="stVerticalBlockBorderWrapper"]::before,
-        div[class*="st-key-dialog_"]::before {
-            content: "";
-            position: absolute;
-            inset: 0 auto auto 0;
-            width: 100%;
-            height: 6px;
-            background: linear-gradient(90deg, var(--red), var(--ink));
-        }
-
-        div[class*="st-key-dialog_header"] {
-            padding: 26px 22px 18px;
-        }
-
-        div[class*="st-key-dialog_header"] h1 {
-            margin-top: 0;
-        }
-
-        div[class*="st-key-dialog_stage_stats"] [data-testid="column"] {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.42);
-            box-shadow: 4px 4px 0 var(--line);
-            padding: 10px 12px;
-        }
-
-        div[class*="st-key-track_archive_panel"],
-        div[class*="st-key-circuit_map_panel"] {
-            padding: 14px;
-        }
-
-        div[class*="st-key-circuit_map_panel"] [data-testid="stImage"],
-        div[class*="st-key-circuit_map_panel"] [data-testid="stPyplot"] {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            background: var(--paper);
-            padding: 8px;
-        }
-
-        div[class*="st-key-dialog_track_details"] [data-testid="column"]:first-of-type {
-            padding-right: 22px;
-        }
-
-        div[class*="st-key-dialog_track_details"] [data-testid="column"]:last-of-type {
-            border-left: 3px dashed var(--line);
-            padding-left: 22px;
-        }
-
-        div[class*="st-key-track_analysis_list"] {
-            border-top: 3px dashed var(--line);
-            margin-top: 22px;
-            padding-top: 18px;
-        }
-
-        div[class*="st-key-track_analysis_list"] ul,
-        div[class*="st-key-circuit_winners_list"] ul {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            background: var(--paper);
-            box-shadow: 4px 4px 0 var(--line);
-            list-style-type: none;
-            margin: 12px 0 0;
-            padding: 12px 16px;
-        }
-
-        div[class*="st-key-track_analysis_list"] li,
-        div[class*="st-key-circuit_winners_list"] li {
-            border-bottom: 1px dashed rgba(23, 23, 23, 0.45);
-            font-size: 22px !important;
-            line-height: 1.28;
-            padding: 8px 0;
-        }
-
-        div[class*="st-key-track_analysis_list"] li:last-child,
-        div[class*="st-key-circuit_winners_list"] li:last-child {
-            border-bottom: 0;
-        }
-
-        div[class*="st-key-circuit_winners_list"] {
-            border-top: 3px dashed var(--line);
-            margin-top: 18px;
-            padding-top: 14px;
-        }
-
-        .session-kicker {
-            color: var(--muted);
-            font-size: 22px;
-            margin-top: -6px;
-        }
-
-        .practice-card {
-            min-height: 164px;
-            padding: 16px;
-            position: relative;
-        }
-
-        .practice-title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1rem;
-            margin: 0 0 12px;
-            text-shadow: 2px 2px 0 var(--red-glow);
-        }
-
-        .practice-stat {
-            margin: 7px 0;
-            font-size: 22px;
-            line-height: 1.05;
-        }
-
-        .practice-label {
-            color: var(--muted);
-            display: block;
-            font-size: 18px;
-            text-transform: uppercase;
-        }
-
-        .app-divider {
-            border: 0;
-            border-top: 2px dashed var(--line);
-            margin: 18px 0 0;
-        }
-
-        [data-testid="stMetric"] {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            padding: 18px;
-            background: rgba(255, 250, 239, 0.95);
-            box-shadow: 5px 5px 0 rgba(23, 23, 23, 0.08);
-        }
-
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricDelta"] {
-            color: var(--muted);
-        }
-
-        div[data-testid="stDataFrame"] {
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 5px 5px 0 rgba(23, 23, 23, 0.08);
-            background: rgba(255, 250, 239, 0.95);
-        }
-
-        .timing-card {
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-            background: linear-gradient(180deg, #14161d 0%, #0f1118 100%);
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.36);
-            padding: 8px 10px 6px;
-            margin: 8px 0 12px;
-        }
-
-        .timing-header {
+        .topbar-brand {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            margin-bottom: 4px;
+            gap: 12px;
+            padding: 2px 0;
+            user-select: none;
         }
 
-        .timing-title {
-            color: #d4dbea;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.58rem;
-            letter-spacing: 0.08em;
+        .f1-badge {
+            background: var(--accent-red);
+            color: #ffffff !important;
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 900 !important;
+            font-style: italic;
+            font-size: 1.15rem !important;
+            letter-spacing: -0.02em;
+            padding: 3px 9px 3px 8px;
+            border-radius: 0px;
+            clip-path: polygon(0 0, 100% 0, 86% 100%, 0% 100%);
+            display: inline-block;
+            line-height: 1;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .brand-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.05rem !important;
+            color: var(--text-heading) !important;
+            letter-spacing: 0.10em;
             text-transform: uppercase;
         }
 
-        .timing-row {
-            display: grid;
-            grid-template-columns: 34px 1fr auto;
+        .brand-sub {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.65rem !important;
+            color: var(--text-muted) !important;
+            letter-spacing: 0.14em;
+        }
+
+        /* Sector-line active underline & hover for nav */
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav {
+            justify-content: flex-end !important;
+            gap: 6px !important;
+            align-items: stretch !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav li.nav-item {
+            flex: 0 0 auto !important;
+            margin: 0px !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav li.nav-item a.nav-link {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            border-radius: 0px !important;
+            border: none !important;
+            border-bottom: 3px solid transparent !important;
+            background: transparent !important;
+            padding: 10px 16px 8px 16px !important;
+            transition: all 0.15s ease !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav li.nav-item a.nav-link:hover {
+            color: #f0f3f6 !important;
+            border-bottom: 3px solid rgba(225, 6, 0, 0.45) !important;
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav li.nav-item a.nav-link.active,
+        div[data-testid="stHorizontalBlock"]:has(.topbar-brand) ul.nav li.nav-item a.nav-link-selected {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0px !important;
+            border: none !important;
+            border-bottom: 3px solid var(--accent-red) !important;
+            background: rgba(225, 6, 0, 0.06) !important;
+            box-shadow: none !important;
+        }
+
+        /* Section Headings: Standardized left accent bars */
+        .section-header-red {
+            border-left: var(--left-bar-width) solid var(--accent-red);
+            padding-left: 14px;
+            margin-bottom: 14px;
+        }
+
+        .section-header-teal {
+            border-left: var(--left-bar-width) solid var(--accent-red);
+            padding-left: 14px;
+            margin-bottom: 14px;
+        }
+
+        .section-header {
+            border-left: var(--left-bar-width) solid var(--accent-red);
+            padding-left: 14px;
+            margin-bottom: 14px;
+        }
+
+        .section-eyebrow,
+        .hero-eyebrow {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.70rem !important;
+            font-weight: 700 !important;
+            color: var(--text-muted) !important;
+            letter-spacing: 0.14em !important;
+            text-transform: uppercase !important;
+            margin: 0 0 4px 0 !important;
+            line-height: 1 !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 1.5rem !important;
+            font-weight: 800 !important;
+            color: var(--text-heading) !important;
+            letter-spacing: 0.04em !important;
+            text-transform: uppercase !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+        }
+
+        .section-description {
+            color: var(--text-muted) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            margin: 0 0 20px 0 !important;
+        }
+
+        /* Live Pulsing Dot (strictly used for live signals like Paddock Feed) */
+        .live-dot-pulse {
+            width: 7px;
+            height: 7px;
+            background-color: var(--accent-red);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 8px var(--accent-red);
+            animation: live-pulse 2s infinite ease-in-out;
+            vertical-align: middle;
+        }
+
+        @keyframes live-pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Hero Section: Full-bleed broadcast presentation, NO card border or background box */
+        .hero-bleed {
+            position: relative;
+            padding: 8px 0 26px 0;
+            margin-bottom: 28px;
+            border-bottom: 1px solid #21262d;
+            background: radial-gradient(circle at 85% 20%, rgba(225, 6, 0, 0.04) 0%, transparent 60%);
+        }
+
+        .hero-kicker {
+            display: flex;
             align-items: center;
             gap: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 6px 0;
-        }
-
-        .timing-row:first-of-type {
-            border-top: 0;
-        }
-
-        .timing-pos {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.62rem;
-            color: #f5f7fb;
-            letter-spacing: 0.03em;
-        }
-
-        .timing-name {
-            color: #f5f7fb;
-            font-size: 0.95rem;
-            line-height: 1.05;
-        }
-
-        .timing-team {
-            color: #93a0b3;
-            font-size: 0.78rem;
-            line-height: 1.1;
-            margin-top: 1px;
-        }
-
-        .timing-time {
-            color: #b6bfd1;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            text-align: right;
-            padding-left: 8px;
-        }
-
-        .timing-extra {
-            color: #8f9cb0;
-            font-size: 0.72rem;
-            margin-top: 2px;
-            letter-spacing: 0.01em;
-        }
-
-        .standings-card {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            background: linear-gradient(180deg, #14161d 0%, #0f1118 100%);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
-            padding: 10px 12px 8px;
-            margin: 8px 0 12px;
-        }
-
-        .standings-title {
-            color: #8f9cb0;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.52rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.70rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.16em !important;
+            text-transform: uppercase !important;
+            color: var(--text-muted);
             margin-bottom: 8px;
         }
 
-        .standings-row {
-            display: grid;
-            grid-template-columns: 22px 1fr auto;
+        .kicker-lead {
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+
+        .kicker-sep {
+            color: #374151;
+        }
+
+        .kicker-sub {
+            color: var(--text-muted);
+        }
+
+        .hero-display-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: clamp(2.2rem, 3.6vw, 3.1rem) !important;
+            letter-spacing: 0.01em !important;
+            line-height: 1.05 !important;
+            color: var(--text-heading) !important;
+            text-transform: uppercase !important;
+            margin: 0 0 12px 0 !important;
+        }
+
+        .hero-title-dim {
+            color: #4b5563;
+            font-weight: 400;
+            margin: 0 4px;
+        }
+
+        .hero-dek {
+            color: var(--text-muted) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14.5px !important;
+            line-height: 1.6 !important;
+            max-width: 66ch !important;
+            margin: 0 0 22px 0 !important;
+        }
+
+        /* Timing-Tower Category Tags (replacing dot+pill badges) */
+        .timing-tags-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             align-items: center;
-            gap: 8px;
-            padding: 5px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .standings-row:first-of-type {
-            border-top: 0;
+        .timing-tag {
+            display: inline-flex;
+            align-items: stretch;
+            border-radius: 0px !important;
+            border: 1px solid var(--border-card);
+            border-left: 2px solid var(--accent-red);
+            background: #14181f;
+            transition: all 0.16s ease;
+            cursor: default;
         }
 
-        .standings-rank {
-            color: #7f8898;
+        .timing-tag:hover {
+            border-left-color: var(--accent-red-hover);
+            border-color: #374151;
+            background: #1a202a;
+            transform: translateY(-1px);
+        }
+
+        .tag-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            background: rgba(225, 6, 0, 0.12);
+            padding: 4px 7px;
+            border-right: 1px solid var(--border-card);
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+        }
+
+        .tag-label {
+            font-family: 'Titillium Web', sans-serif;
             font-size: 0.74rem;
-            text-align: right;
+            font-weight: 700;
+            color: var(--text-body);
+            padding: 4px 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
         }
 
-        .standings-main {
-            min-width: 0;
+        .section-kicker {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--accent-red) !important;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 3px;
         }
 
-        .standings-name {
-            color: #edf2fb;
-            font-size: 0.92rem;
-            line-height: 1.05;
+        .section-ribbon {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 7px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-left: 3px solid var(--accent-red) !important;
+            border-radius: 0px;
+            margin: 10px 0 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text-body);
+            letter-spacing: 0.06em;
+        }
+
+        /* Summary Cards */
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 12px 0 16px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-top: 2px solid var(--accent-red) !important;
+            border-radius: 0px;
+            padding: 14px 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-card-hover);
+        }
+
+        .summary-label {
+            font-family: 'Titillium Web', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--accent-red) !important;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        .summary-note {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px !important;
+            color: var(--text-muted) !important;
+            margin: 0;
+        }
+
+        /* Circuit Records 3-card Grid */
+        .circuit-records-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        .record-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-top: 2px solid var(--accent-red) !important;
+            border-radius: 0px;
+            padding: 12px 14px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        .record-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .record-label {
+            font-family: 'Titillium Web', sans-serif;
+            font-weight: 700;
+            font-size: 0.74rem;
+            color: var(--accent-red) !important;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .record-subtag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.64rem;
+            font-weight: 700;
+            color: var(--accent-amber);
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            border-radius: 0px;
+            padding: 1px 5px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .record-value {
+            font-family: 'Titillium Web', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-heading);
+            line-height: 1.25;
+        }
+
+        .record-timing {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            color: #f0f3f6;
+        }
+
+        /* Practice Cards */
+        .practice-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-top: 2px solid var(--accent-red);
+            border-radius: 0px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .practice-title {
+            font-family: 'Titillium Web', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-heading);
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .practice-stat {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px !important;
+            color: var(--text-body);
+            margin: 4px 0;
+        }
+
+        .practice-label {
+            color: var(--accent-red);
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        /* Metric readouts */
+        div[data-testid="stMetricValue"] {
+            font-family: 'JetBrains Mono', monospace !important;
+            color: var(--text-heading) !important;
+            font-size: 1.45rem !important;
+            font-weight: 700 !important;
+        }
+        div[data-testid="stMetricLabel"] {
+            font-family: 'Titillium Web', sans-serif !important;
+            color: var(--text-muted) !important;
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.06em !important;
+            text-transform: uppercase !important;
+        }
+
+        /* BaseWeb Selectbox Overrides: sleek motorsport telemetry style */
+        div[data-baseweb="select"] {
+            margin-top: 4px !important;
+        }
+
+        div[data-baseweb="select"] > div {
+            background-color: #12161e !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 0px !important;
+            color: var(--text-heading) !important;
+            padding: 4px 8px !important;
+            min-height: 44px !important;
+            transition: all 0.15s ease !important;
+        }
+
+        div[data-baseweb="select"] > div:hover {
+            border-color: var(--border-card-hover) !important;
+        }
+
+        div[data-baseweb="select"] > div:focus-within {
+            border-color: var(--accent-red) !important;
+            box-shadow: 0 0 0 2px var(--accent-red-tint) !important;
+        }
+
+        div[data-baseweb="select"] span {
+            color: var(--text-heading) !important;
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.03em !important;
+        }
+
+        div[data-baseweb="popover"],
+        div[data-baseweb="menu"],
+        ul[role="listbox"] {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        li[role="option"] {
+            color: var(--text-body) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            padding: 8px 14px !important;
+            transition: background 0.15s ease !important;
+        }
+
+        li[role="option"]:hover,
+        li[aria-selected="true"] {
+            background-color: var(--accent-red-tint) !important;
+            color: #ffffff !important;
+        }
+
+        div[data-testid="stWidgetLabel"] label,
+        div[data-testid="stWidgetLabel"] p {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 0.80rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.12em !important;
+            text-transform: uppercase !important;
+            color: var(--text-muted) !important;
+            margin-bottom: 6px !important;
+        }
+
+        /* PRIMARY CTA BUTTON: Angular-clipped telemetry button, bold Titillium Web, racing red gradient */
+        button[data-testid="baseButton-primary"],
+        .stButton > button[kind="primary"],
+        .stButton > button[data-testid="baseButton-primary"] {
+            background: linear-gradient(135deg, var(--accent-red) 0%, #b30500 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid #ff3b30 !important;
+            border-radius: 0px !important;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%) !important;
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 0.96rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.10em !important;
+            text-transform: uppercase !important;
+            padding: 13px 26px !important;
+            min-height: 48px !important;
+            height: 48px !important;
+            line-height: 1 !important;
+            box-shadow: 0 4px 20px rgba(225, 6, 0, 0.45) !important;
+            transition: all 0.16s ease !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        button[data-testid="baseButton-primary"]:hover,
+        .stButton > button[kind="primary"]:hover,
+        .stButton > button[data-testid="baseButton-primary"]:hover {
+            background: linear-gradient(135deg, var(--accent-red-hover) 0%, #c40600 100%) !important;
+            border-color: #ff7870 !important;
+            box-shadow: 0 6px 28px rgba(225, 6, 0, 0.65) !important;
+            transform: translateY(-2px) !important;
+            filter: brightness(1.08) !important;
+        }
+
+        /* SECONDARY BUTTONS: Angular-clipped telemetry outline buttons */
+        button[data-testid="baseButton-secondary"],
+        .stButton > button[kind="secondary"],
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
+            background: #181d27 !important;
+            color: var(--text-muted) !important;
+            border: 1px solid #2e3646 !important;
+            border-radius: 0px !important;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%) !important;
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 0.88rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            padding: 13px 20px !important;
+            min-height: 48px !important;
+            height: 48px !important;
+            line-height: 1 !important;
+            box-shadow: none !important;
+            transition: all 0.16s ease !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+
+        button[data-testid="baseButton-secondary"]:hover,
+        .stButton > button[kind="secondary"]:hover,
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
+            background: #222938 !important;
+            color: #ffffff !important;
+            border-color: var(--accent-teal) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        /* Streamlit Tabs */
+        button[data-baseweb="tab"] {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            letter-spacing: 0.06em !important;
+            text-transform: uppercase !important;
+            color: var(--text-muted) !important;
+            padding: 8px 16px !important;
+        }
+
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: var(--text-heading) !important;
+            border-bottom: 2px solid var(--accent-red) !important;
+        }
+
+        /* General Card Containers */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 0px !important;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4) !important;
+            margin-bottom: 30px !important;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            padding: 24px 28px !important;
+        }
+
+        /* ARCHIVE SELECTOR: Control Panel Treatment (distinct contrast, sharp chamfered panel) */
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.st-key-cell_select_year),
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.ctrl-panel-header) {
+            background: #12161f !important;
+            border: 1px solid #2c3444 !important;
+            border-radius: 0px !important;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+        }
+
+        .ctrl-panel-header {
+            margin-bottom: 18px;
+        }
+
+        .ctrl-panel-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .ctrl-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            background: rgba(225, 6, 0, 0.12);
+            padding: 2px 7px;
+            border: 1px solid rgba(225, 6, 0, 0.35);
+            letter-spacing: 0.1em;
+        }
+
+        .ctrl-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .ctrl-panel-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 1.45rem !important;
+            font-weight: 900 !important;
+            color: var(--text-heading) !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+            margin: 4px 0 6px 0 !important;
+            line-height: 1.15 !important;
+        }
+
+        .ctrl-panel-desc {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            color: var(--text-muted) !important;
+            margin: 0 0 18px 0 !important;
+            line-height: 1.55 !important;
+        }
+
+        /* Distinct elevated card cells for Archive Select inputs */
+        .st-key-cell_select_year,
+        .st-key-cell_select_round,
+        div[class*="st-key-cell_select"] {
+            background: #171c26 !important;
+            border: 1px solid #2b3342 !important;
+            border-radius: 0px !important;
+            padding: 14px 18px !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* MOTORSPORT HEADLINES SECTION: Timing-Tower Results Strip & Table Rows */
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.feed-header-strip),
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.feed-row) {
+            background: #10141a !important;
+            border: 1px solid #232a36 !important;
+            border-radius: 0px !important;
+            padding: 0px !important;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
+            overflow: hidden !important;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.feed-header-strip) > div {
+            padding: 0px !important;
+        }
+
+        .feed-header-strip {
+            background: linear-gradient(90deg, #181d26 0%, #10141a 100%);
+            border-top: 2px solid var(--accent-red);
+            border-bottom: 1px solid #232a36;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feed-strip-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feed-strip-kicker {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.70rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .feed-strip-divider {
+            color: #374151;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .feed-strip-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            color: var(--text-heading) !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            margin: 0 !important;
+        }
+
+        .feed-strip-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .feed-strip-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent-teal);
+            letter-spacing: 0.14em;
+        }
+
+        /* Headline table rows (replacing card-in-card boxes) */
+        .feed-row-group {
+            border-bottom: 1px solid #1c222e;
+        }
+
+        .feed-row-group:last-child {
+            border-bottom: none;
+        }
+
+        .feed-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 13px 20px;
+            text-decoration: none !important;
+            border-left-width: 3px;
+            border-left-style: solid;
+            background: transparent;
+            transition: all 0.14s ease;
+        }
+
+        .feed-row:hover {
+            background: #161b24 !important;
+            border-left-color: var(--accent-teal) !important;
+        }
+
+        .feed-row-main {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            padding-right: 14px;
+        }
+
+        .feed-row-title {
+            color: var(--text-heading) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            line-height: 1.45 !important;
+            text-decoration: none !important;
+            transition: color 0.14s ease;
+        }
+
+        .feed-row:hover .feed-row-title {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+
+        .feed-row-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .feed-meta-source {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.70rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .feed-meta-sep {
+            color: #374151;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+        }
+
+        .feed-meta-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.70rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Expandable "+N MORE SOURCES" */
+        .feed-sources-details {
+            padding: 0 20px 10px 20px;
+            background: rgba(16, 20, 26, 0.5);
+        }
+
+        .feed-sources-summary {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.70rem;
+            font-weight: 700;
+            color: var(--accent-teal);
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            user-select: none;
+            padding: 4px 8px;
+            border-radius: 0px;
+            display: inline-block;
+            transition: all 0.14s ease;
+        }
+
+        .feed-sources-summary:hover {
+            color: #ffffff;
+            background: rgba(225, 6, 0, 0.15);
+        }
+
+        .feed-sources-list {
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-left: 10px;
+            border-left: 2px solid #232a36;
+        }
+
+        .feed-sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            text-decoration: none !important;
+            background: #141822;
+            border-left-width: 2px;
+            border-left-style: solid;
+            transition: all 0.14s ease;
+        }
+
+        .feed-sub-row:hover {
+            background: #1b212f !important;
+            border-left-color: var(--accent-teal) !important;
+        }
+
+        .feed-sub-title {
+            color: var(--text-body) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 400 !important;
+            text-decoration: none !important;
+        }
+
+        /* Dataframes */
+        div[data-testid="stDataFrame"] {
+            border: 1px solid var(--border-card);
+            border-radius: 0px;
+            background: var(--bg-card);
+        }
+
+        /* Standings Bar Cards */
+        .standings-card {
+            background: #161b22;
+            border: 1px solid var(--border-card);
+            border-top: 3px solid var(--accent-red);
+            border-radius: 0px;
+            padding: 16px 18px;
+            margin: 12px 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .standings-title {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--text-heading);
+            margin-bottom: 12px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .standings-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            padding: 3px 0;
+        }
+
+        .standings-rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--accent-amber);
+            width: 28px;
+            text-align: center;
+        }
+
+        .standings-main {
+            flex: 1;
+        }
+
+        .standings-name {
+            font-family: 'Titillium Web', sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #f0f3f6;
+            line-height: 1.1;
+            margin-bottom: 3px;
+        }
+
         .standings-bar-shell {
-            margin-top: 4px;
-            height: 4px;
-            border-radius: 999px;
-            background: #20283a;
+            height: 6px;
+            background: #262c36;
+            border-radius: 0px;
             overflow: hidden;
         }
 
         .standings-bar {
             height: 100%;
-            border-radius: 999px;
-            background: #d81f2e;
+            border-radius: 0px;
+            transition: width 0.3s ease;
         }
 
         .standings-points {
-            color: #ff2f3f;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.54rem;
-            white-space: nowrap;
-            padding-left: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            width: 75px;
+            text-align: right;
         }
 
-        [data-testid="stAlert"] {
-            border-radius: 4px;
-            border: 1px solid var(--line);
-            box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.08);
+        /* Top Podium Card */
+        .podium-card {
+            border: 1px solid var(--border-card);
+            border-top: 3px solid var(--accent-red);
+            border-radius: 0px;
+            background: #161b22;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+            padding: 16px 18px;
+            margin: 12px 0 16px;
         }
 
-        [data-testid="stSelectbox"] label,
-        [data-testid="stMultiSelect"] label {
-            color: var(--muted);
-            font-family: 'Press Start 2P', cursive !important;
-            font-size: 0.72rem;
+        .podium-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .podium-badge {
+            background: var(--accent-red);
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            border-radius: 0px;
+            padding: 3px 8px;
+            font-size: 0.70rem;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
         }
 
-        div[data-baseweb="select"] > div {
-            background-color: #ffffff;
-            color: var(--ink);
-            border: 2px solid var(--line);
-            border-radius: 4px;
-            box-shadow: 4px 4px 0 var(--line);
-            font-family: 'VT323', monospace;
+        .podium-title {
+            color: var(--text-heading);
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 800;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
-        header {
-            background: transparent !important;
+        .podium-subtitle {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            margin-bottom: 12px;
         }
 
-        @media (max-width: 1100px) {
-            .summary-strip,
-            .panel-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            div[class*="st-key-dialog_track_details"] [data-testid="column"]:last-of-type {
-                border-left: 0;
-                padding-left: 0;
-            }
+        .podium-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
         }
 
-        @media (max-width: 700px) {
-            .summary-strip,
-            .panel-grid {
+        .podium-cell {
+            border: 1px solid var(--border-card);
+            border-radius: 0px;
+            background: #12161f;
+            padding: 12px 14px;
+        }
+
+        .podium-pos {
+            font-family: 'Titillium Web', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+
+        .podium-pos-leader {
+            color: var(--accent-amber);
+        }
+
+        .podium-name {
+            color: var(--text-heading);
+            font-family: 'Titillium Web', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        .podium-team {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .podium-time {
+            color: var(--accent-red);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        /* Loading Box */
+        .loading-box {
+            border: 1px solid var(--accent-red);
+            border-radius: 0px;
+            background: var(--bg-card);
+            padding: 10px 14px;
+            margin: 8px 0;
+            color: var(--text-heading);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 900px) {
+            .circuit-records-grid {
                 grid-template-columns: 1fr;
             }
-
-            .hero {
-                padding: 18px;
+            .podium-grid {
+                grid-template-columns: 1fr;
             }
-        }
-        section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #fbf7ee 0%, #e5dccb 100%);
-            border-right: 2px solid var(--ink);
-        }
-
-        section[data-testid="stSidebar"] * {
-            color: var(--ink);
-        }
-
-        .stButton button {
-            background-color: var(--red) !important;
-            color: #fbf7ee !important;
-            border: 3px solid var(--ink) !important;
-            font-family: 'Press Start 2P', cursive !important;
-            font-size: 0.8rem !important;
-            text-transform: uppercase;
-            box-shadow: 4px 4px 0 var(--ink) !important;
-            border-radius: 0 !important;
-            transition: all 0.1s ease-in-out;
-        }
-
-        .stButton button:hover {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0 var(--ink) !important;
-            color: #ffffff !important;
-            border-color: var(--ink) !important;
-        }
-        
-        .stButton button:active {
-            transform: translate(4px, 4px);
-            box-shadow: 0 0 0 var(--ink) !important;
-            color: #ffffff !important;
-            border-color: var(--ink) !important;
         }
         </style>
         """,
@@ -672,166 +1272,168 @@ def inject_retro_css() -> None:
     )
 
 
-@contextmanager
-def anime_loading_box(message: str = "Loading API data..."):
-        placeholder = st.empty()
-
-        loader_html = f"""
-        <div class=\"api-loader-shell\" role=\"status\" aria-live=\"polite\"> 
-            <div class=\"api-loader-grid\"> 
-                <div class=\"square\" style=\"--rotation: 0deg; --scale: 0.88;\"></div>
-                <div class=\"square\" style=\"--rotation: 18deg; --scale: 1.03;\"></div>
-                <div class=\"square\" style=\"--rotation: 32deg; --scale: 0.96;\"></div>
-                <div class=\"square\" style=\"--rotation: -18deg; --scale: 1.06;\"></div>
-                <div class=\"square\" style=\"--rotation: -32deg; --scale: 0.92;\"></div>
-            </div>
-            <p class=\"api-loader-text\">{escape(message)}</p>
-        </div>
-
-        <style>
-            .api-loader-shell {{
-                --hex-orange-1: #f79f45;
-                --hex-red-1: #d04b33;
-                width: min(560px, 100%);
-                margin: 0 auto 12px;
-                border: 3px solid #211d18;
-                border-radius: 8px;
-                background: linear-gradient(180deg, #fbf7ee 0%, #e5dccb 100%);
-                box-shadow: 6px 6px 0 #211d18;
-                padding: 14px 16px;
-                box-sizing: border-box;
-            }}
-
-            .api-loader-grid {{
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                gap: 8px;
-                align-items: center;
-            }}
-
-            .square {{
-                aspect-ratio: 1 / 1;
-                border: 3px solid var(--hex-orange-1);
-                background: var(--hex-red-1);
-                border-radius: 4px;
-                transform-origin: center center;
-                will-change: transform, border-color, background-color;
-            }}
-
-            .api-loader-text {{
-                margin: 10px 0 0;
-                font-family: 'Press Start 2P', cursive;
-                letter-spacing: 0.06em;
-                text-transform: uppercase;
-                font-size: 0.72rem;
-                color: #211d18;
-                text-align: center;
-            }}
-        </style>
-
-        <script type=\"module\">
-            import {{ waapi, animate, stagger }} from 'https://esm.sh/animejs';
-
-            waapi.animate('.square',  {{
-                borderColor: ['var(--hex-orange-1)', 'var(--hex-red-1)'],
-                ease: 'inOutSine',
-                duration: 1200,
-                delay: stagger(110),
-                loop: true,
-                alternate: true,
-            }});
-
-            animate('.square',  {{
-                rotate: ['0deg', 'var(--rotation)'],
-                scale: [1, 'var(--scale)'],
-                background: ['var(--hex-red-1)', 'var(--hex-orange-1)'],
-                ease: 'inOutSine',
-                duration: 1200,
-                delay: stagger(110),
-                loop: true,
-                alternate: true,
-            }});
-        </script>
-        """
-
-        with placeholder.container():
-                components.html(loader_html, height=126)
-
-        try:
-                yield
-        finally:
-                placeholder.empty()
-
-
-def _pick_first_value(row, keys, empty="-"):
-    for key in keys:
-        value = row.get(key)
-        text = str(value).strip() if value is not None else ""
-        if text and text.lower() not in {"nan", "none", "nat"}:
-            return text
-    return empty
-
-
-def render_timing_table_card(
-    dataframe,
-    title: str,
-    badge: str | None = None,
-    time_column: str | None = None,
-    limit: int | None = 8,
-    extra_columns: list[str] | None = None,
-) -> None:
-    if dataframe is None or getattr(dataframe, "empty", True):
-        st.warning("No timing data available.")
+def render_topbar(current_index: int = 0, route_map: dict | None = None, **kwargs) -> None:
+    """Renders a sleek, single-row F1 race control top navigation bar using streamlit-option-menu."""
+    if st.session_state.get("_topbar_rendered_in_run", False):
         return
+    st.session_state["_topbar_rendered_in_run"] = True
 
-    rows_html = []
-    data_slice = dataframe if limit is None else dataframe.head(limit)
+    from streamlit_option_menu import option_menu
 
-    for _, row in data_slice.iterrows():
-        position = _pick_first_value(row, ["POS", "position"], "-")
-        driver = _pick_first_value(row, ["DRIVER", "TEAM"], "-")
-        team = _pick_first_value(row, ["TEAM"], "")
-        timing = _pick_first_value(
-            row,
-            [time_column] if time_column else ["TIME/GAP", "Q3", "Q2", "Q1", "PTS", "FASTEST LAP"],
-            "-",
-        )
-        if time_column is None and timing == "-" and "PTS" in dataframe.columns:
-            timing = f"{_pick_first_value(row, ['PTS'], '0')} pts"
+    col_brand, col_nav = st.columns([1.2, 2.8], vertical_alignment="center")
 
-        extra_text = ""
-        if extra_columns:
-            parts = []
-            for column in extra_columns:
-                if column in dataframe.columns:
-                    value = _pick_first_value(row, [column], "-")
-                    parts.append(f"{column}: {value}")
-            if parts:
-                extra_text = f"<div class='timing-extra'>{escape(' | '.join(parts))}</div>"
-
-        rows_html.append(
-            "<div class='timing-row'>"
-            f"<div class='timing-pos'>P{escape(str(position))}</div>"
-            "<div>"
-            f"<div class='timing-name'>{escape(driver)}</div>"
-            f"<div class='timing-team'>{escape(team)}</div>"
-            f"{extra_text}"
-            "</div>"
-            f"<div class='timing-time'>{escape(timing)}</div>"
-            "</div>"
+    with col_brand:
+        st.markdown(
+            """
+            <div class="topbar-brand">
+                <span class="f1-badge">F1</span>
+                <div class="brand-text">
+                    <span class="brand-title">RACE CONTROL</span>
+                    <span class="brand-sub">TELEMETRY ARCHIVE</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-    badge_html = f"<div><span class='timing-label'>{escape(badge)}</span></div>" if badge else ""
-    st.markdown(
-        "<div class='timing-card'>"
-        "<div class='timing-header'>"
-        f"{badge_html}"
-        f"<div class='timing-title'>{escape(title)}</div>"
-        "</div>"
-        f"{''.join(rows_html)}"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    options = ["Race Select", "Race Analysis", "Driver Compare", "Team Wiki"]
+    icons = ["flag", "bar-chart-line", "people", "trophy"]
+
+    with col_nav:
+        selected = option_menu(
+            menu_title=None,
+            options=options,
+            icons=icons,
+            default_index=current_index,
+            orientation="horizontal",
+            styles={
+                "container": {
+                    "padding": "0px !important",
+                    "margin": "0px !important",
+                    "background-color": "transparent",
+                    "border": "none",
+                },
+                "nav": {
+                    "justify-content": "flex-end !important",
+                    "gap": "6px !important",
+                    "align-items": "stretch !important",
+                },
+                "nav-item": {
+                    "flex": "none !important",
+                    "margin": "0px !important",
+                },
+                "icon": {
+                    "color": "inherit",
+                    "font-size": "12px",
+                    "vertical-align": "-1px",
+                    "margin-right": "6px",
+                },
+                "nav-link": {
+                    "font-family": "'Titillium Web', sans-serif",
+                    "font-size": "13px",
+                    "font-weight": "600",
+                    "text-transform": "uppercase",
+                    "letter-spacing": "0.08em",
+                    "color": "#8b949e",
+                    "background-color": "transparent",
+                    "padding": "10px 16px 8px 16px",
+                    "margin": "0px",
+                    "border-radius": "0px",
+                    "border": "none",
+                    "border-bottom": "3px solid transparent",
+                    "transition": "all 0.14s ease",
+                },
+                "nav-link-selected": {
+                    "background-color": "rgba(225, 6, 0, 0.06) !important",
+                    "color": "#ffffff !important",
+                    "font-weight": "700 !important",
+                    "border": "none !important",
+                    "border-bottom": "3px solid #e10600 !important",
+                    "border-radius": "0px !important",
+                    "box-shadow": "none !important",
+                },
+            },
+            key=f"f1_top_nav_{current_index}",
+        )
+
+    if route_map and selected in route_map:
+        target = route_map[selected]
+        selected_index = options.index(selected)
+        if selected_index != current_index:
+            st.switch_page(target)
+
+
+def _pick_first_value(row, keys: list[str], default: str = "-") -> str:
+    for key in keys:
+        if key in row and str(row[key]).strip() and str(row[key]).lower() != "nan":
+            return str(row[key]).strip()
+    return default
+
+
+def get_team_color(identifier: str | None, default: str = "#e10600") -> str:
+    """Returns the official F1 team color for a team name, driver name, or driver abbreviation.
+    Accurate F1 team color mapping:
+    - McLaren -> Orange (#ff8000)
+    - Red Bull -> Dark Blue (#1e41ff / #3671c6)
+    - Mercedes -> Blue (#00a0dd)
+    - Ferrari -> Red (#e80020)
+    - Aston Martin -> Racing Green (#229971)
+    - Alpine -> Alpine Blue (#0093cc)
+    - Williams -> Williams Blue (#64c4ff)
+    - RB / Racing Bulls -> Electric Blue (#6692ff)
+    - Sauber / Kick Sauber -> Neon Green (#52e252)
+    - Haas -> Haas Red (#e6002b)
+    Default fallback is F1 Red (#e10600).
+    """
+    if not identifier:
+        return default
+    text = str(identifier).lower().strip()
+
+    # McLaren - Orange
+    if any(k in text for k in ["mclaren", "norris", "piastri"]) or text in ["mcl", "nor", "pia"]:
+        return "#ff8000"
+
+    # Red Bull - Dark Blue
+    if any(k in text for k in ["red bull", "verstappen", "perez"]) or text in ["rbr", "ver", "per"]:
+        return "#1e41ff"
+
+    # Ferrari - Racing Red
+    if any(k in text for k in ["ferrari", "leclerc", "sainz"]) or text in ["fer", "lec", "sai"]:
+        return "#e80020"
+
+    # Mercedes - Mercedes Blue
+    if any(k in text for k in ["mercedes", "russell", "antonelli"]) or text in ["mer", "rus", "ant"]:
+        return "#00a0dd"
+    if "hamilton" in text or text == "ham":
+        if "ferrari" in text:
+            return "#e80020"
+        return "#00a0dd"
+
+    # Aston Martin - British Racing Green
+    if any(k in text for k in ["aston martin", "alonso", "stroll"]) or text in ["amr", "alo", "str"]:
+        return "#229971"
+
+    # Alpine - Alpine Blue
+    if any(k in text for k in ["alpine", "gasly", "ocon", "doohan"]) or text in ["alp", "gas", "oco", "doo"]:
+        return "#0093cc"
+
+    # Williams - Williams Blue
+    if any(k in text for k in ["williams", "albon", "sargeant", "colapinto"]) or text in ["wil", "alb", "sar", "col"]:
+        return "#64c4ff"
+
+    # Racing Bulls / RB / AlphaTauri / Toro Rosso - Electric Blue
+    if any(k in text for k in ["racing bulls", "alphatauri", "toro rosso", "vcarb", "ricciardo", "tsunoda", "lawson", "hadjar"]) or text in ["rb", "vcarb", "ric", "tsu", "law", "had"] or text.startswith("rb ") or " rb" in text:
+        return "#6692ff"
+
+    # Sauber / Kick Sauber / Alfa Romeo - Neon Green
+    if any(k in text for k in ["sauber", "kick sauber", "alfa romeo", "bottas", "zhou", "bortoleto"]) or text in ["sau", "bot", "zho", "bor"]:
+        return "#52e252"
+
+    # Haas - Haas Red
+    if any(k in text for k in ["haas", "magnussen", "bearman", "hulkenberg"]) or text in ["haa", "mag", "bea", "hul"]:
+        return "#e6002b"
+
+    return default
 
 
 def render_standings_bar_card(
@@ -839,7 +1441,7 @@ def render_standings_bar_card(
     title: str,
     name_column: str,
     points_column: str = "PTS",
-    limit: int = 10,
+    limit: int = 20,
     highlight_top: bool = False,
 ) -> None:
     if dataframe is None or getattr(dataframe, "empty", True):
@@ -862,11 +1464,13 @@ def render_standings_bar_card(
         name = _pick_first_value(row, [name_column], "-")
         points = _safe_float(row.get(points_column, 0))
         width_pct = max(0.0, min(100.0, (points / max_points) * 100.0))
-        bar_color = "#f1f1f1" if highlight_top and str(rank) == "1" else "#d81f2e"
+        
+        # Color driver or constructor bar in their exact team color
+        bar_color = get_team_color(name)
 
         rows_html.append(
             "<div class='standings-row'>"
-            f"<div class='standings-rank'>{escape(str(rank))}</div>"
+            f"<div class='standings-rank' style='color:{bar_color};'>{escape(str(rank))}</div>"
             "<div class='standings-main'>"
             f"<div class='standings-name'>{escape(name)}</div>"
             "<div class='standings-bar-shell'>"
@@ -898,11 +1502,12 @@ def render_top_podium_card(
 
     top_three = dataframe.head(3)
     cells = []
+    p1_color = "#e10600"
 
     for _, row in top_three.iterrows():
         position = _pick_first_value(row, ["POS", "position"], "-")
-        driver = _pick_first_value(row, ["DRIVER", "TEAM"], "-")
-        team = _pick_first_value(row, ["TEAM"], "")
+        driver = _pick_first_value(row, ["DRIVER", "BroadcastName", "FullName"], "-")
+        team = _pick_first_value(row, ["TEAM", "TeamName"], "")
         timing = _pick_first_value(
             row,
             [time_column] if time_column else ["TIME/GAP", "Q3", "Q2", "Q1", "PTS", "FASTEST LAP"],
@@ -911,42 +1516,45 @@ def render_top_podium_card(
         if time_column is None and timing == "-" and "PTS" in dataframe.columns:
             timing = f"{_pick_first_value(row, ['PTS'], '0')} pts"
 
-        pos_class = "podium-pos podium-pos-leader" if str(position) == "1" else "podium-pos"
+        team_color = get_team_color(team or driver)
+        if str(position) in ["1", "1.0", "P1"]:
+            p1_color = team_color
+
         cells.append(
-            "<div class='podium-cell'>"
-            f"<div class='{pos_class}'>P{escape(str(position))}</div>"
-            f"<div class='podium-name'>{escape(driver)}</div>"
-            f"<div class='podium-team'>{escape(team)}</div>"
-            f"<div class='podium-time'>{escape(timing)}</div>"
+            f"<div class='podium-cell' style='border-top: 3px solid {team_color}; box-shadow: 0 4px 16px rgba(0,0,0,0.4);'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>"
+            f"<span class='podium-pos' style='color: {team_color}; font-size: 1.25rem;'>P{escape(str(position))}</span>"
+            f"<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.65rem; font-weight: 700; color: {team_color}; background: rgba(255,255,255,0.04); border: 1px solid {team_color}; padding: 1px 6px; text-transform: uppercase;'>{escape(str(team))}</span>"
+            f"</div>"
+            f"<div class='podium-name' style='font-size: 1.12rem;'>{escape(driver)}</div>"
+            f"<div class='podium-time' style='color: {team_color}; font-size: 0.95rem; font-weight: 700;'>{escape(timing)}</div>"
             "</div>"
         )
 
     subtitle_html = f"<div class='podium-subtitle'>{escape(subtitle)}</div>" if subtitle else ""
-    html = (
-        "<div class='podium-card'>"
+    st.markdown(
+        f"<div class='podium-card' style='border-top: 3px solid {p1_color};'>"
         "<div class='podium-header'>"
-        f"<span class='podium-badge'>{escape(badge)}</span>"
+        f"<span class='podium-badge' style='background: {p1_color}; color: #ffffff;'>{escape(badge)}</span>"
         f"<span class='podium-title'>{escape(title)}</span>"
         "</div>"
         f"{subtitle_html}"
         "<div class='podium-grid'>"
         f"{''.join(cells)}"
         "</div>"
-        "</div>"
-        "<style>"
-        ".podium-card{border:1px solid rgba(255,255,255,.12);border-radius:10px;background:linear-gradient(180deg,#14161d 0%,#0f1118 100%);box-shadow:0 14px 40px rgba(0,0,0,.34);padding:12px 14px;margin:8px 0 12px;}"
-        ".podium-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}"
-        ".podium-badge{background:#ff2f21;color:#fff;border-radius:4px;padding:3px 8px;font-size:.62rem;font-weight:900;letter-spacing:.08em;line-height:1;}"
-        ".podium-title{color:#f5f7fb;font-family:'Press Start 2P',cursive;font-size:.7rem;letter-spacing:.04em;}"
-        ".podium-subtitle{color:#97a3b6;font-size:.78rem;margin-bottom:8px;}"
-        ".podium-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}"
-        ".podium-cell{border:1px solid rgba(255,255,255,.07);border-radius:8px;background:rgba(255,255,255,.02);padding:8px 10px;}"
-        ".podium-pos{font-family:'Press Start 2P',cursive;font-size:.85rem;color:#f5f7fb;margin-bottom:5px;}"
-        ".podium-pos-leader{color:#ff2f21;}"
-        ".podium-name{color:#f5f7fb;font-size:.98rem;line-height:1.12;}"
-        ".podium-team{color:#93a0b3;font-size:.8rem;line-height:1.12;margin-top:2px;}"
-        ".podium-time{color:#bcc5d6;font-size:.78rem;line-height:1.2;margin-top:6px;font-variant-numeric:tabular-nums;}"
-        "@media(max-width:900px){.podium-grid{grid-template-columns:1fr;}}"
-        "</style>"
+        "</div>",
+        unsafe_allow_html=True,
     )
-    st.markdown(html, unsafe_allow_html=True)
+
+
+@contextmanager
+def anime_loading_box(message: str = "Loading..."):
+    placeholder = st.empty()
+    placeholder.markdown(
+        f"<div class='loading-box'><span>⚡</span><span>{escape(message)}</span></div>",
+        unsafe_allow_html=True,
+    )
+    try:
+        yield
+    finally:
+        placeholder.empty()
