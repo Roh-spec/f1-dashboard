@@ -9,16 +9,16 @@ from ui import render_standings_bar_card
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
-from sessions import (
-    get_event_sessions,
-    get_driver_standings,
-    get_constructor_standings,
-    get_schedule,
-    get_track_wiki_summary,
-    load_session_data,
-    get_openf1_weather,
-    get_openf1_race_control,
-)
+import sessions
+
+get_event_sessions = sessions.get_event_sessions
+get_driver_standings = sessions.get_driver_standings
+get_constructor_standings = sessions.get_constructor_standings
+get_schedule = sessions.get_schedule
+get_track_wiki_summary = sessions.get_track_wiki_summary
+load_session_data = sessions.load_session_data
+get_openf1_weather = getattr(sessions, "get_openf1_weather", None)
+get_openf1_race_control = getattr(sessions, "get_openf1_race_control", None)
 from track_analysis import render_circuit_map, render_circuit_records, render_track_analysis
 from charts import plot_driver_telemetry_comparison
 

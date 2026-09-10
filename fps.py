@@ -1,13 +1,13 @@
 import streamlit as st
 
 from ui import anime_loading_box, get_team_color
-from sessions import (
-    SESSION_LABELS,
-    best_driver_name,
-    format_timing_value,
-    get_openf1_practice_fastest_table,
-    load_session_data,
-)
+import sessions
+
+SESSION_LABELS = sessions.SESSION_LABELS
+best_driver_name = sessions.best_driver_name
+format_timing_value = sessions.format_timing_value
+load_session_data = sessions.load_session_data
+get_openf1_practice_fastest_table = getattr(sessions, "get_openf1_practice_fastest_table", None)
 
 
 def build_fastest_lap_table(laps, results):

@@ -305,16 +305,18 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
     openf1_stints = None
     if not required.issubset(set(laps.columns)) or (laps["Compound"] == "UNKNOWN").all():
         try:
-            from sessions import get_openf1_stints
-            ev = getattr(session, "event", None)
-            year = getattr(session, "event", {}).get("Year") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "Year", None) if ev is not None else None)
-            r_name = getattr(session, "event", {}).get("EventName") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "EventName", None) if ev is not None else None)
-            if not year and hasattr(session, "date"):
-                year = session.date.year
-            if not r_name and hasattr(session, "name"):
-                r_name = session.name
-            if year and r_name:
-                openf1_stints = get_openf1_stints(int(year), str(r_name), "Race")
+            import sessions
+            get_openf1_stints = getattr(sessions, "get_openf1_stints", None)
+            if get_openf1_stints is not None:
+                ev = getattr(session, "event", None)
+                year = getattr(session, "event", {}).get("Year") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "Year", None) if ev is not None else None)
+                r_name = getattr(session, "event", {}).get("EventName") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "EventName", None) if ev is not None else None)
+                if not year and hasattr(session, "date"):
+                    year = session.date.year
+                if not r_name and hasattr(session, "name"):
+                    r_name = session.name
+                if year and r_name:
+                    openf1_stints = get_openf1_stints(int(year), str(r_name), "Race")
         except Exception:
             openf1_stints = None
 

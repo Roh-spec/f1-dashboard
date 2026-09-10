@@ -3,6 +3,8 @@ import streamlit as st
 
 import ui
 importlib.reload(ui)
+import sessions
+importlib.reload(sessions)
 from ui import inject_retro_css, render_topbar
 from sessions import setup_fastf1_cache
 
