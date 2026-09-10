@@ -16,6 +16,8 @@ from sessions import (
     get_schedule,
     get_track_wiki_summary,
     load_session_data,
+    get_openf1_weather,
+    get_openf1_race_control,
 )
 from track_analysis import render_circuit_map, render_circuit_records, render_track_analysis
 from charts import plot_driver_telemetry_comparison
@@ -108,6 +110,12 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
         except Exception:
             weather = None
 
+        if weather is None or (hasattr(weather, "empty") and weather.empty):
+            try:
+                weather = get_openf1_weather(int(year), race_name, "Race")
+            except Exception:
+                weather = None
+
         lap_pace = laps.dropna(subset=["LapNumber", "LapTime"]).copy()
         if lap_pace.empty:
             st.warning("Lap pace data unavailable for this session.")
@@ -151,6 +159,14 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
                     incident_df = incident_df[["Lap", "Category", "Message"]].copy()
         except Exception:
             pass
+
+        if incident_df.empty:
+            try:
+                openf1_rc = get_openf1_race_control(int(year), race_name, "Race")
+                if openf1_rc is not None and not openf1_rc.empty:
+                    incident_df = openf1_rc
+            except Exception:
+                pass
 
         weather_line = "On-track weather data unavailable for this session."
         if weather is not None and not weather.empty:

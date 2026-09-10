@@ -294,15 +294,6 @@ def _resolve_team_lineage(constructor_id):
 
 def setup_fastf1_cache(cache_dir: str | None = None) -> None:
     global _CACHE_READY
-    # Patch FastF1 internal headers to a modern desktop browser User-Agent
-    # This prevents Cloudflare/Akamai 403 Forbidden blocks on cloud environments (Streamlit Cloud, AWS)
-    _ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-    try:
-        import fastf1.api as _f1_api
-        if hasattr(_f1_api, "headers") and isinstance(_f1_api.headers, dict):
-            _f1_api.headers["User-Agent"] = _ua
-    except Exception:
-        pass
 
     if cache_dir is None:
         if os.name != "nt" or "/mount/" in os.path.abspath("."):
@@ -321,15 +312,6 @@ def setup_fastf1_cache(cache_dir: str | None = None) -> None:
             fastf1.Cache.enable_cache(t_dir)
         except Exception:
             pass
-
-    try:
-        import fastf1.req as _f1_req
-        if hasattr(_f1_req.Cache, "_requests_session") and _f1_req.Cache._requests_session:
-            _f1_req.Cache._requests_session.headers["User-Agent"] = _ua
-        if hasattr(_f1_req.Cache, "_requests_session_cached") and _f1_req.Cache._requests_session_cached:
-            _f1_req.Cache._requests_session_cached.headers["User-Agent"] = _ua
-    except Exception:
-        pass
 
     _CACHE_READY = True
 
@@ -442,6 +424,213 @@ def get_race_laps_fallback(year: int, round_num: int):
     return df
 
 
+@st.cache_data(ttl=86400)
+def get_openf1_session_key(year: int, race_name: str, session_name: str) -> int | None:
+    """Resolve an OpenF1 session_key for a given year, race_name, and session."""
+    import requests
+    try:
+        url = f"https://api.openf1.org/v1/sessions?year={int(year)}"
+        r = requests.get(url, timeout=5)
+        if r.status_code != 200:
+            return None
+        sessions = r.json()
+        if not sessions:
+            return None
+
+        clean_rname = str(race_name).lower().replace("grand prix", "").strip()
+        matched_sessions = []
+        for s in sessions:
+            c_name = str(s.get("country_name", "")).lower()
+            loc = str(s.get("location", "")).lower()
+            c_short = str(s.get("circuit_short_name", "")).lower()
+            if clean_rname and (clean_rname in c_name or clean_rname in loc or clean_rname in c_short or c_name in clean_rname):
+                matched_sessions.append(s)
+
+        if not matched_sessions:
+            return None
+
+        s_target = session_name.lower().strip()
+        name_alias = {
+            "fp1": "practice 1",
+            "fp2": "practice 2",
+            "fp3": "practice 3",
+            "q": "qualifying",
+            "sq": "sprint qualifying",
+            "s": "sprint",
+            "r": "race",
+        }
+        s_target = name_alias.get(s_target, s_target)
+
+        for s in matched_sessions:
+            s_cur = str(s.get("session_name", "")).lower().strip()
+            if s_cur == s_target:
+                return int(s.get("session_key"))
+            if s_target == "qualifying" and "qualifying" in s_cur and "sprint" not in s_cur:
+                return int(s.get("session_key"))
+            if s_target == "race" and s_cur == "race":
+                return int(s.get("session_key"))
+
+        return None
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=86400)
+def get_openf1_weather(year: int, race_name: str, session_name: str = "Race"):
+    """Fetch official session weather metrics from OpenF1."""
+    import requests
+    s_key = get_openf1_session_key(int(year), race_name, session_name)
+    if not s_key:
+        return None
+    try:
+        url = f"https://api.openf1.org/v1/weather?session_key={s_key}"
+        r = requests.get(url, timeout=5)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data:
+            return None
+        df = pd.DataFrame(data)
+        df = df.rename(columns={
+            "track_temperature": "TrackTemp",
+            "air_temperature": "AirTemp",
+            "wind_speed": "WindSpeed",
+            "rainfall": "Rainfall",
+        })
+        return df
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=86400)
+def get_openf1_race_control(year: int, race_name: str, session_name: str = "Race"):
+    """Fetch official race-control messages and incident windows from OpenF1."""
+    import requests
+    s_key = get_openf1_session_key(int(year), race_name, session_name)
+    if not s_key:
+        return None
+    try:
+        url = f"https://api.openf1.org/v1/race_control?session_key={s_key}"
+        r = requests.get(url, timeout=5)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data:
+            return None
+
+        records = []
+        for row in data:
+            msg = str(row.get("message", "")).upper()
+            flag = str(row.get("flag", "")).upper()
+            lap = row.get("lap_number")
+
+            cat = None
+            if "RED" in flag or "RED FLAG" in msg:
+                cat = "Red Flag"
+            elif "VIRTUAL SAFETY CAR" in msg or "VSC" in msg:
+                cat = "VSC"
+            elif "SAFETY CAR" in msg:
+                cat = "Safety Car"
+            elif "PENALTY" in msg:
+                cat = "Penalty"
+            elif "INVESTIGATION" in msg:
+                cat = "Investigation"
+
+            if cat and lap is not None:
+                records.append({
+                    "Lap": lap,
+                    "Category": cat,
+                    "Message": row.get("message", ""),
+                })
+
+        if records:
+            return pd.DataFrame(records)
+        return None
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=86400)
+def get_openf1_practice_fastest_table(year: int, race_name: str, session_name: str):
+    """Fetch practice session fastest-lap table directly from OpenF1."""
+    import requests
+    s_key = get_openf1_session_key(int(year), race_name, session_name)
+    if not s_key:
+        return None
+    try:
+        laps_url = f"https://api.openf1.org/v1/laps?session_key={s_key}"
+        drv_url = f"https://api.openf1.org/v1/drivers?session_key={s_key}"
+        rl = requests.get(laps_url, timeout=6)
+        rd = requests.get(drv_url, timeout=6)
+        if rl.status_code != 200 or rd.status_code != 200:
+            return None
+        laps_data = rl.json()
+        drivers_data = rd.json()
+        if not laps_data or not drivers_data:
+            return None
+
+        df_laps = pd.DataFrame(laps_data)
+        df_drv = pd.DataFrame(drivers_data)
+        if "lap_duration" not in df_laps or "driver_number" not in df_laps:
+            return None
+
+        valid = df_laps.dropna(subset=["lap_duration", "driver_number"]).copy()
+        if valid.empty:
+            return None
+
+        fastest_indexes = valid.groupby("driver_number")["lap_duration"].idxmin()
+        table = valid.loc[fastest_indexes].sort_values("lap_duration").reset_index(drop=True)
+        table["POS"] = table.index + 1
+
+        num_to_name = dict(zip(df_drv["driver_number"], df_drv["broadcast_name"]))
+        num_to_team = dict(zip(df_drv["driver_number"], df_drv["team_name"]))
+
+        table["DRIVER"] = table["driver_number"].map(num_to_name).fillna(table["driver_number"].astype(str))
+        table["TEAM"] = table["driver_number"].map(num_to_team).fillna("")
+        table["LAP"] = table["lap_number"].fillna("-")
+        table["TYRE"] = "SOFT"
+
+        def _fmt_sec(sec):
+            try:
+                m = int(sec // 60)
+                s = sec % 60
+                return f"{m}:{s:06.3f}"
+            except Exception:
+                return str(sec)
+
+        table["FASTEST LAP"] = table["lap_duration"].apply(_fmt_sec)
+        return table[["POS", "DRIVER", "TEAM", "FASTEST LAP", "LAP", "TYRE"]]
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=86400)
+def get_openf1_stints(year: int, race_name: str, session_name: str = "Race"):
+    """Fetch tyre compound stints from OpenF1."""
+    import requests
+    s_key = get_openf1_session_key(int(year), race_name, session_name)
+    if not s_key:
+        return None
+    try:
+        url_s = f"https://api.openf1.org/v1/stints?session_key={s_key}"
+        url_d = f"https://api.openf1.org/v1/drivers?session_key={s_key}"
+        stints = requests.get(url_s, timeout=5).json()
+        drivers = requests.get(url_d, timeout=5).json()
+        if not stints or not drivers:
+            return None
+        df_s = pd.DataFrame(stints)
+        df_d = pd.DataFrame(drivers)
+        num_to_code = dict(zip(df_d["driver_number"], df_d["name_acronym"]))
+        df_s["Driver"] = df_s["driver_number"].map(num_to_code)
+        df_s["Stint"] = df_s["stint_number"]
+        df_s["Compound"] = df_s["compound"].astype(str).str.upper()
+        df_s["lap_start"] = df_s["lap_start"]
+        df_s["lap_end"] = df_s["lap_end"]
+        return df_s.dropna(subset=["Driver", "Stint", "lap_start", "lap_end"])
+    except Exception:
+        return None
+
+
 @st.cache_data
 def get_schedule(year):
     return fastf1.get_event_schedule(year)
@@ -505,14 +694,18 @@ def load_session_data(year, race_name, session_name, *args, **kwargs):
         # Tier 1: Fast & reliable core load (laps, results, messages)
         loaded_ok = False
         try:
-            session.load(laps=True, telemetry=False, weather=False, messages=True)
+            session.load(laps=True, telemetry=False, weather=True, messages=True)
             loaded_ok = True
         except Exception:
             try:
-                session.load(laps=True, telemetry=False, weather=False, messages=False)
+                session.load(laps=True, telemetry=False, weather=True, messages=False)
                 loaded_ok = True
             except Exception:
-                pass
+                try:
+                    session.load(laps=True, telemetry=False, weather=False, messages=False)
+                    loaded_ok = True
+                except Exception:
+                    pass
 
         curr_results = None
         try:

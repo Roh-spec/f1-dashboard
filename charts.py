@@ -301,7 +301,24 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
 
     laps = source_laps.copy()
     required = {"Driver", "Stint", "Compound", "LapNumber"}
+
+    openf1_stints = None
     if not required.issubset(set(laps.columns)) or (laps["Compound"] == "UNKNOWN").all():
+        try:
+            from sessions import get_openf1_stints
+            ev = getattr(session, "event", None)
+            year = getattr(session, "event", {}).get("Year") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "Year", None) if ev is not None else None)
+            r_name = getattr(session, "event", {}).get("EventName") if hasattr(session, "event") and isinstance(session.event, dict) else (getattr(ev, "EventName", None) if ev is not None else None)
+            if not year and hasattr(session, "date"):
+                year = session.date.year
+            if not r_name and hasattr(session, "name"):
+                r_name = session.name
+            if year and r_name:
+                openf1_stints = get_openf1_stints(int(year), str(r_name), "Race")
+        except Exception:
+            openf1_stints = None
+
+    if (not required.issubset(set(laps.columns)) or (laps["Compound"] == "UNKNOWN").all()) and (openf1_stints is None or openf1_stints.empty):
         st.markdown(
             """
             <div style="background: #161b22; border: 1px solid #262c36; border-left: 3px solid #e10600; padding: 14px 18px; margin-top: 8px;">
@@ -313,12 +330,11 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
         )
         return
 
-    laps = laps.dropna(subset=["Driver", "Stint", "LapNumber"]).copy()
-    if laps.empty:
-        st.warning("Tyre strategy data unavailable for this session.")
-        return
-        st.warning("Tyre strategy data unavailable for this session.")
-        return
+    if openf1_stints is None or openf1_stints.empty:
+        laps = laps.dropna(subset=["Driver", "Stint", "LapNumber"]).copy()
+        if laps.empty:
+            st.warning("Tyre strategy data unavailable for this session.")
+            return
 
     compound_colors = {
         "SOFT": "#e10600",
@@ -332,6 +348,8 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
     results = _safe_results(session)
     if results is not None and not results.empty and "Abbreviation" in results:
         driver_order = results["Abbreviation"].dropna().astype(str).tolist()
+    elif openf1_stints is not None and not openf1_stints.empty:
+        driver_order = openf1_stints["Driver"].dropna().astype(str).unique().tolist()
     else:
         driver_order = laps["Driver"].dropna().astype(str).unique().tolist()
 
@@ -350,19 +368,24 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
     bar_height = 0.65
 
     for drv in driver_order:
-        drv_laps = laps[laps["Driver"] == drv].copy()
-        if drv_laps.empty:
-            continue
+        if openf1_stints is not None and not openf1_stints.empty:
+            stint_groups = openf1_stints[openf1_stints["Driver"] == drv].sort_values("lap_start")
+            if stint_groups.empty:
+                continue
+        else:
+            drv_laps = laps[laps["Driver"] == drv].copy()
+            if drv_laps.empty:
+                continue
 
-        stint_groups = (
-            drv_laps.groupby("Stint", as_index=False)
-            .agg(
-                lap_start=("LapNumber", "min"),
-                lap_end=("LapNumber", "max"),
-                compound=("Compound", "last"),
+            stint_groups = (
+                drv_laps.groupby("Stint", as_index=False)
+                .agg(
+                    lap_start=("LapNumber", "min"),
+                    lap_end=("LapNumber", "max"),
+                    compound=("Compound", "last"),
+                )
+                .sort_values("lap_start")
             )
-            .sort_values("lap_start")
-        )
 
         y = y_map[drv]
         for _, stint in stint_groups.iterrows():
@@ -393,7 +416,10 @@ def plot_tyre_strategy_timeline(session, max_drivers=20, compact=False):
                 zorder=5,
             )
 
-    max_lap = int(laps["LapNumber"].max()) if not laps["LapNumber"].dropna().empty else 0
+    if openf1_stints is not None and not openf1_stints.empty:
+        max_lap = int(openf1_stints["lap_end"].max()) if not openf1_stints["lap_end"].dropna().empty else 57
+    else:
+        max_lap = int(laps["LapNumber"].max()) if not laps["LapNumber"].dropna().empty else 0
     ax.set_xlim(0.5, max(5.5, max_lap + 1))
     ax.set_ylim(-0.8, len(driver_order) - 0.2)
     ax.set_yticks(y_positions)

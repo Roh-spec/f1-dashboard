@@ -1,7 +1,13 @@
 import streamlit as st
 
 from ui import anime_loading_box, get_team_color
-from sessions import SESSION_LABELS, best_driver_name, format_timing_value, load_session_data
+from sessions import (
+    SESSION_LABELS,
+    best_driver_name,
+    format_timing_value,
+    get_openf1_practice_fastest_table,
+    load_session_data,
+)
 
 
 def build_fastest_lap_table(laps, results):
@@ -42,9 +48,15 @@ def build_fastest_lap_table(laps, results):
     return table
 
 
-def render_fp_card(session_name, results, laps, year=None):
+def render_fp_card(session_name, results, laps, year=None, race_name=None):
     label = SESSION_LABELS.get(session_name, session_name)
     table = build_fastest_lap_table(laps, results)
+
+    if (table is None or table.empty) and year and race_name:
+        try:
+            table = get_openf1_practice_fastest_table(int(year), race_name, session_name)
+        except Exception:
+            table = None
 
     if table is None or table.empty:
         driver_count = 0 if results is None or results.empty else len(results)
@@ -134,4 +146,4 @@ def render_fp_sessions(year, race_name, practice_sessions, round_num=None):
             with column:
                 with anime_loading_box(f"Loading {SESSION_LABELS.get(session_name, session_name).upper()} data..."):
                     session, results, laps = load_session_data(year, race_name, session_name)
-                render_fp_card(session_name, results, laps, year=year)
+                render_fp_card(session_name, results, laps, year=year, race_name=race_name)
