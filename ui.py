@@ -687,6 +687,57 @@ def inject_retro_css() -> None:
             margin-bottom: 6px !important;
         }
 
+        /* F1 Timing-Tower Tab Navigation (st.tabs) */
+        div[data-baseweb="tab-list"] {
+            background-color: #10141a !important;
+            border-bottom: 2px solid var(--border-card) !important;
+            padding: 0px 6px !important;
+            gap: 6px !important;
+            border-radius: 0px !important;
+            margin-top: 8px !important;
+            margin-bottom: 18px !important;
+        }
+
+        button[data-baseweb="tab"] {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            color: var(--text-muted) !important;
+            background-color: transparent !important;
+            border: none !important;
+            border-radius: 0px !important;
+            padding: 12px 22px !important;
+            border-bottom: 3px solid transparent !important;
+            transition: all 0.15s ease !important;
+        }
+
+        button[data-baseweb="tab"]:hover {
+            color: #f0f3f6 !important;
+            border-bottom: 3px solid rgba(225, 6, 0, 0.45) !important;
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #ffffff !important;
+            border-bottom: 3px solid var(--accent-red) !important;
+            background: rgba(225, 6, 0, 0.08) !important;
+        }
+
+        div[data-baseweb="tab-highlight"] {
+            background-color: var(--accent-red) !important;
+            height: 3px !important;
+        }
+
+        div[data-baseweb="tab-border"] {
+            background-color: var(--border-card) !important;
+        }
+
+        div[data-baseweb="tab-panel"] {
+            padding-top: 6px !important;
+        }
+
         /* PRIMARY CTA BUTTON: Angular-clipped telemetry button, bold Titillium Web, racing red gradient */
         button[data-testid="baseButton-primary"],
         .stButton > button[kind="primary"],

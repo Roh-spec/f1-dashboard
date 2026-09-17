@@ -182,6 +182,7 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
                 details.append("Wet conditions reported" if raining else "Dry running")
             if details:
                 weather_line = " | ".join(details)
+        weather_line = weather_line.replace("Â°C", " C").replace("°C", " C")
 
         st.info(f"On-track weather: {weather_line}")
 
@@ -293,7 +294,7 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
             st.metric("Median Race Pace", f"{lap_pace['LapSec'].median():.2f} s")
         with metric_col2:
             if weather is not None and not weather.empty and "TrackTemp" in weather and not weather["TrackTemp"].dropna().empty:
-                st.metric("Avg Track Temp", f"{weather['TrackTemp'].dropna().mean():.1f} °C")
+                st.metric("Avg Track Temp", f"{weather['TrackTemp'].dropna().mean():.1f} C")
             else:
                 st.metric("Avg Track Temp", "N/A")
         with metric_col3:
@@ -303,7 +304,7 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
                 st.metric("Avg Wind Speed", "N/A")
 
         if not incident_df.empty:
-            with st.expander(f"📋 RACE CONTROL INCIDENT LOG ({len(incident_df)} EVENTS)"):
+            with st.expander(f"RACE CONTROL INCIDENT LOG ({len(incident_df)} EVENTS)"):
                 st.dataframe(
                     incident_df.sort_values(["Lap", "Category"], na_position="last").reset_index(drop=True),
                     use_container_width=True,
@@ -420,7 +421,7 @@ def render_end_race_bar(event, selected_year) -> None:
         with right_col:
             if next_event is not None:
                 if st.button(
-                    "NEXT RACE ➡️",
+                    "NEXT RACE",
                     key="race_analysis_next_race_link",
                     use_container_width=True,
                 ):
@@ -475,29 +476,16 @@ def render_qualifying_vs_race_pace_overlay(year, race_name, *args, **kwargs) -> 
                     plot_driver_telemetry_comparison(drv, q_session, r_session, "Qualifying", "Race", compact=True)
 
 
-def render_sessions(year, race_name, event) -> None:
-    round_num = int(event["RoundNumber"]) if event is not None and "RoundNumber" in event else None
+def _split_event_sessions(event):
     event_sessions = get_event_sessions(event)
     practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
-    result_sessions = [name for name in event_sessions if not name.startswith("Practice")]
-
-    st.markdown(
-        "<div class='section-ribbon'><span>SESSION PANELS</span><span>FASTEST LAPS</span><span>QUALIFYING</span><span>RACE RESULTS</span></div>",
-        unsafe_allow_html=True,
-    )
-    render_fp_sessions(year, race_name, practice_sessions, round_num=round_num)
-
-    for session_name in result_sessions:
-        if session_name in {"Qualifying", "Sprint Qualifying", "Sprint Shootout"}:
-            render_qualifying_session(year, race_name, session_name)
-        elif session_name in {"Race", "Sprint"}:
-            render_race_session(year, race_name, session_name)
-
-    has_q = any(s in {"Qualifying", "Sprint Qualifying", "Sprint Shootout"} for s in result_sessions)
-    has_r = any(s in {"Race", "Sprint"} for s in result_sessions)
-    if has_q and has_r:
-        render_qualifying_vs_race_pace_overlay(year, race_name)
-
+    qualifying_sessions = [
+        name
+        for name in event_sessions
+        if name in {"Qualifying", "Sprint Qualifying", "Sprint Shootout"}
+    ]
+    race_sessions = [name for name in event_sessions if name in {"Race", "Sprint"}]
+    return event_sessions, practice_sessions, qualifying_sessions, race_sessions
 
 def render_page_header_navigation(event, selected_year: int) -> None:
     prev_event = None
@@ -523,7 +511,7 @@ def render_page_header_navigation(event, selected_year: int) -> None:
 
         with left_col:
             if prev_event is not None and st.button(
-                "⬅️ PREV RACE",
+                "PREV RACE",
                 key="race_analysis_top_previous_race",
                 use_container_width=True,
             ):
@@ -548,7 +536,7 @@ def render_page_header_navigation(event, selected_year: int) -> None:
 
         with right_col:
             if next_event is not None and st.button(
-                "NEXT RACE ➡️",
+                "NEXT RACE",
                 key="race_analysis_top_next_race",
                 use_container_width=True,
             ):
@@ -556,6 +544,60 @@ def render_page_header_navigation(event, selected_year: int) -> None:
                 st.session_state.selected_race = str(next_event.get("EventName", ""))
                 st.session_state.selected_year = int(selected_year)
                 st.rerun()
+
+
+def render_session_tabs(selected_year, selected_race, event, event_sessions) -> None:
+    practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
+    sprint_q_session = next((s for s in event_sessions if s in {"Sprint Qualifying", "Sprint Shootout"}), None)
+    sprint_race_session = next((s for s in event_sessions if s == "Sprint"), None)
+    event_format = str(event.get("EventFormat", "")).lower()
+    is_sprint_weekend = bool(sprint_q_session or sprint_race_session or "sprint" in event_format)
+
+    st.markdown(
+        "<div class='section-ribbon'><span>WEEKEND SESSIONS</span><span>TIMING & RESULTS PANELS</span></div>",
+        unsafe_allow_html=True,
+    )
+
+    tab_titles = ["Practice"]
+    tab_keys = ["practice"]
+
+    if is_sprint_weekend:
+        sq_name = sprint_q_session if sprint_q_session else ("Sprint Shootout" if "shootout" in event_format else "Sprint Qualifying")
+        sr_name = sprint_race_session if sprint_race_session else "Sprint"
+        tab_titles.extend(["Sprint Qualifying", "Sprint Race"])
+        tab_keys.extend([("sprint_qualifying", sq_name), ("sprint_race", sr_name)])
+
+    tab_titles.extend(["Qualifying", "Race"])
+    tab_keys.extend(["qualifying", "race"])
+
+    tabs = st.tabs(tab_titles)
+
+    for i, item in enumerate(tab_keys):
+        with tabs[i]:
+            if item == "practice":
+                round_num = int(event["RoundNumber"]) if event is not None and "RoundNumber" in event else None
+                if practice_sessions:
+                    render_fp_sessions(selected_year, selected_race, practice_sessions, round_num=round_num)
+                else:
+                    st.info("No practice session data available for this event.")
+            elif isinstance(item, tuple) and item[0] == "sprint_qualifying":
+                render_qualifying_session(selected_year, selected_race, item[1])
+            elif isinstance(item, tuple) and item[0] == "sprint_race":
+                render_race_session(selected_year, selected_race, item[1])
+            elif item == "qualifying":
+                render_qualifying_session(selected_year, selected_race, "Qualifying")
+            elif item == "race":
+                render_race_session(selected_year, selected_race, "Race")
+
+
+def render_telemetry_section(selected_year, selected_race, event) -> None:
+    _, _, qualifying_sessions, race_sessions = _split_event_sessions(event)
+    if qualifying_sessions and race_sessions:
+        st.markdown(
+            "<div class='section-ribbon'><span>TELEMETRY INTELLIGENCE</span><span>QUALIFYING VS RACE PACE OVERLAYS</span></div>",
+            unsafe_allow_html=True,
+        )
+        render_qualifying_vs_race_pace_overlay(selected_year, selected_race)
 
 
 if "selected_event" not in st.session_state:
@@ -570,11 +612,27 @@ else:
 
     event_sessions = get_event_sessions(event)
 
+    # 1. Page Header & Navigation
     render_page_header_navigation(event, selected_year)
+
+    # 2. Overview: Race Briefing & Stage Stats
     render_event_snapshot(event, event_sessions)
-    render_track_details(selected_year, selected_race, event)
-    render_track_condition_overlay(selected_year, selected_race)
     render_stage_stats(event, event_sessions)
-    render_sessions(selected_year, selected_race, event)
-    render_standings(selected_year, event['RoundNumber'])
+
+    # 3. Circuit Analysis
+    render_track_details(selected_year, selected_race, event)
+
+    # 4. Track Condition Overlay (Weather, Pace & Incident Windows)
+    render_track_condition_overlay(selected_year, selected_race)
+
+    # 5. Weekend Sessions in Tabs (Practice, [Sprint Q, Sprint Race], Qualifying, Race)
+    render_session_tabs(selected_year, selected_race, event, event_sessions)
+
+    # 6. Telemetry Analysis (Qualifying vs Race Pace Overlay)
+    render_telemetry_section(selected_year, selected_race, event)
+
+    # 7. Championship Standings (WDC & WCC)
+    render_standings(selected_year, event["RoundNumber"])
+
+    # 8. Bottom Navigation Footer (Next Race)
     render_end_race_bar(event, selected_year)
