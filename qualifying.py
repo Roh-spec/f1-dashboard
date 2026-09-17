@@ -1,6 +1,6 @@
 import streamlit as st
 
-from charts import plot_lap_times, plot_top_2_telemetry
+from charts import plot_top_2_telemetry
 from ui import anime_loading_box, render_top_podium_card
 from fps import build_fastest_lap_table
 from sessions import SESSION_LABELS, best_driver_name, format_columns, load_session_data
@@ -41,11 +41,11 @@ def render_qualifying_incidents(session, results):
         
         if not q2_elim.empty:
             drivers = ", ".join(q2_elim["Abbreviation"].dropna().tolist())
-            blocks.append((st.warning, "🔻", f"**Q2 Eliminated:**\n- {drivers}"))
+            blocks.append((st.warning, "!", f"**Q2 Eliminated:**\n- {drivers}"))
 
         if not q1_elim.empty:
             drivers = ", ".join(q1_elim["Abbreviation"].dropna().tolist())
-            blocks.append((st.error, "❌", f"**Q1 Eliminated:**\n- {drivers}"))
+            blocks.append((st.error, "X", f"**Q1 Eliminated:**\n- {drivers}"))
 
     try:
         msgs = session.race_control_messages
@@ -61,21 +61,21 @@ def render_qualifying_incidents(session, results):
                 pen_text = "**Penalties:**\n"
                 for _, row in pens.iterrows():
                     pen_text += f"- {row['Message']} ({format_time(row.get('Time'))})\n"
-                blocks.append((st.warning, "⏱️", pen_text))
+                blocks.append((st.warning, "!", pen_text))
                 
             invs = msgs[msgs['Message'].str.contains('INVESTIGATION', case=False, na=False)]
             if not invs.empty:
                 inv_text = "**Investigations:**\n"
                 for _, row in invs.iterrows():
                     inv_text += f"- {row['Message']} ({format_time(row.get('Time'))})\n"
-                blocks.append((st.info, "🔎", inv_text))
+                blocks.append((st.info, "i", inv_text))
                 
             reds = msgs[msgs['Message'].str.contains('RED FLAG', case=False, na=False)]
             if not reds.empty:
                 red_text = "**Red Flags:**\n"
                 for _, row in reds.iterrows():
                     red_text += f"- {row['Message']} ({format_time(row.get('Time'))})\n"
-                blocks.append((st.error, "🚩", red_text))
+                blocks.append((st.error, "!", red_text))
 
     except Exception:
         pass
@@ -83,12 +83,12 @@ def render_qualifying_incidents(session, results):
     if blocks:
         has_intel = True
         cols = st.columns(min(3, len(blocks)))
-        for i, (st_func, icon, text) in enumerate(blocks):
+        for i, (st_func, _icon, text) in enumerate(blocks):
             with cols[i % len(cols)]:
-                st_func(text, icon=icon)
+                st_func(text)
 
     if not has_intel:
-        st.success("Clean session. No major incidents.", icon="✅")
+        st.success("Clean session. No major incidents.")
 
 
 def render_qualifying_session(year, race_name, session_name):
@@ -128,5 +128,5 @@ def render_qualifying_session(year, race_name, session_name):
         _, col, _ = st.columns([1, 4, 1])
         with col:
             plot_top_2_telemetry(session)
-            
+
         render_qualifying_incidents(session, results)

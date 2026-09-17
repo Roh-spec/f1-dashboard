@@ -66,7 +66,7 @@ def render_race_incidents(session, results):
                 import pandas as pd
                 lap_str = f"Lap {int(laps) + 1}" if pd.notna(laps) else "Unknown Lap"
                 dnf_text += f"- **{drv}**: {status} ({lap_str})\n"
-            blocks.append((st.error, "💥", dnf_text))
+            blocks.append((st.error, "!", dnf_text))
 
     try:
         msgs = session.race_control_messages
@@ -80,21 +80,21 @@ def render_race_incidents(session, results):
                 red_text = "**Red Flags:**\n"
                 for _, row in reds.iterrows():
                     red_text += f"- {row['Message']} ({get_lap_str(row['Lap'])})\n"
-                blocks.append((st.error, "🚩", red_text))
+                blocks.append((st.error, "!", red_text))
 
             pens = msgs[msgs['Message'].str.contains('PENALTY', case=False, na=False)]
             if not pens.empty:
                 pen_text = "**Penalties:**\n"
                 for _, row in pens.iterrows():
                     pen_text += f"- {row['Message']} ({get_lap_str(row['Lap'])})\n"
-                blocks.append((st.warning, "⏱️", pen_text))
+                blocks.append((st.warning, "!", pen_text))
                 
             invs = msgs[msgs['Message'].str.contains('INVESTIGATION', case=False, na=False)]
             if not invs.empty:
                 inv_text = "**Investigations:**\n"
                 for _, row in invs.iterrows():
                     inv_text += f"- {row['Message']} ({get_lap_str(row['Lap'])})\n"
-                blocks.append((st.info, "🔎", inv_text))
+                blocks.append((st.info, "i", inv_text))
                 
     except Exception:
         pass
@@ -102,12 +102,12 @@ def render_race_incidents(session, results):
     if blocks:
         has_intel = True
         cols = st.columns(min(3, len(blocks)))
-        for i, (st_func, icon, text) in enumerate(blocks):
+        for i, (st_func, _icon, text) in enumerate(blocks):
             with cols[i % len(cols)]:
-                st_func(text, icon=icon)
+                st_func(text)
 
     if not has_intel:
-        st.success("Clean session. No major incidents.", icon="✅")
+        st.success("Clean session. No major incidents.")
 
 
 def render_incident_timeline_box(session):
