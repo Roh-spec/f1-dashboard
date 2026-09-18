@@ -1252,8 +1252,9 @@ def inject_retro_css() -> None:
             font-weight: 700;
             font-size: 0.82rem;
             color: var(--accent-amber);
-            width: 28px;
+            min-width: 26px;
             text-align: center;
+            white-space: nowrap;
         }
 
         .standings-main {
@@ -1600,6 +1601,8 @@ def render_standings_bar_card(
     points_column: str = "PTS",
     limit: int = 20,
     highlight_top: bool = False,
+    max_points_override: float | None = None,
+    as_card: bool = True,
 ) -> None:
     if dataframe is None or getattr(dataframe, "empty", True):
         st.warning("Standings unavailable.")
@@ -1613,11 +1616,25 @@ def render_standings_bar_card(
         except (TypeError, ValueError):
             return 0.0
 
-    max_points = max((_safe_float(v) for v in data_slice.get(points_column, [])), default=0.0) or 1.0
+    if max_points_override is not None and max_points_override > 0:
+        max_points = max_points_override
+    else:
+        max_points = max((_safe_float(v) for v in data_slice.get(points_column, [])), default=0.0) or 1.0
 
     rows_html = []
     for _, row in data_slice.iterrows():
-        rank = _pick_first_value(row, ["POS", "position"], "-")
+        rank_val = _pick_first_value(row, ["POS", "position"], "-")
+        try:
+            rf = float(rank_val)
+            if rf.is_integer():
+                rank_str = str(int(rf))
+            else:
+                rank_str = str(rank_val)
+        except (ValueError, TypeError):
+            rank_str = str(rank_val).strip()
+            if rank_str.endswith(".0"):
+                rank_str = rank_str[:-2]
+
         name = _pick_first_value(row, [name_column], "-")
         points = _safe_float(row.get(points_column, 0))
         width_pct = max(0.0, min(100.0, (points / max_points) * 100.0))
@@ -1627,7 +1644,7 @@ def render_standings_bar_card(
 
         rows_html.append(
             "<div class='standings-row'>"
-            f"<div class='standings-rank' style='color:{bar_color};'>{escape(str(rank))}</div>"
+            f"<div class='standings-rank' style='color:{bar_color};'>{escape(rank_str)}</div>"
             "<div class='standings-main'>"
             f"<div class='standings-name'>{escape(name)}</div>"
             "<div class='standings-bar-shell'>"
@@ -1638,13 +1655,19 @@ def render_standings_bar_card(
             "</div>"
         )
 
-    st.markdown(
-        "<div class='standings-card'>"
-        f"<div class='standings-title'>{escape(title)}</div>"
-        f"{''.join(rows_html)}"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    if as_card:
+        st.markdown(
+            "<div class='standings-card'>"
+            f"<div class='standings-title'>{escape(title)}</div>"
+            f"{''.join(rows_html)}"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f"<div style='padding: 6px 0;'>{''.join(rows_html)}</div>",
+            unsafe_allow_html=True,
+        )
 
 
 def render_top_podium_card(

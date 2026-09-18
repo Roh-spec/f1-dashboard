@@ -326,37 +326,50 @@ def render_standings(year, round_num) -> None:
 
     with col1:
         with st.container(border=True):
-            head_col1, toggle_col1 = st.columns([1.7, 1.3], vertical_alignment="center")
-            with head_col1:
-                st.markdown("<h3 style='margin-bottom:0;'>World Driver Championship</h3>", unsafe_allow_html=True)
-            with toggle_col1:
-                show_full_wdc = st.toggle("Show full grid", key="toggle_full_grid_wdc", value=False)
-
+            st.markdown("<h3>World Driver Championship</h3>", unsafe_allow_html=True)
             wdc = get_driver_standings(year, round_num)
             if not wdc.empty:
                 wdc_display = wdc[['position', 'givenName', 'familyName', 'points', 'wins']].copy()
                 wdc_display['DRIVER'] = wdc_display['givenName'] + " " + wdc_display['familyName']
                 wdc_display = wdc_display[['position', 'DRIVER', 'points', 'wins']]
                 wdc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
-                limit_wdc = len(wdc_display) if show_full_wdc else 10
+                
+                # Format POS without decimal (.0 removal)
+                wdc_display['POS'] = wdc_display['POS'].apply(
+                    lambda x: str(int(float(x))) if pd.notna(x) and str(x).replace('.0', '').isdigit() else str(x)
+                )
+
+                top_max_points = None
+                try:
+                    top_max_points = float(wdc_display['PTS'].iloc[0])
+                except Exception:
+                    top_max_points = None
+
                 render_standings_bar_card(
                     wdc_display,
-                    title="Driver Standings" if show_full_wdc else "Top 10 Drivers",
+                    title="Driver Standings",
                     name_column="DRIVER",
                     points_column="PTS",
-                    limit=limit_wdc,
+                    limit=10,
                 )
+
+                if len(wdc_display) > 10:
+                    with st.expander(f"SHOW FULL GRID ({len(wdc_display)} DRIVERS)"):
+                        render_standings_bar_card(
+                            wdc_display.iloc[10:],
+                            title="",
+                            name_column="DRIVER",
+                            points_column="PTS",
+                            limit=len(wdc_display) - 10,
+                            max_points_override=top_max_points,
+                            as_card=False,
+                        )
             else:
                 st.warning("WDC Standings unavailable.")
 
     with col2:
         with st.container(border=True):
-            head_col2, toggle_col2 = st.columns([1.7, 1.3], vertical_alignment="center")
-            with head_col2:
-                st.markdown("<h3 style='margin-bottom:0;'>World Constructor Championship</h3>", unsafe_allow_html=True)
-            with toggle_col2:
-                show_full_wcc = st.toggle("Show full grid", key="toggle_full_grid_wcc", value=False)
-
+            st.markdown("<h3>World Constructor Championship</h3>", unsafe_allow_html=True)
             wcc = get_constructor_standings(year, round_num)
             if not wcc.empty:
                 wcc_display = wcc[['position', 'constructorName', 'points', 'wins']].copy() if 'constructorName' in wcc else wcc[['position', 'constructorNames', 'points', 'wins']].copy()
@@ -367,13 +380,18 @@ def render_standings(year, round_num) -> None:
 
                 wcc_display = wcc_display[['position', 'TEAM', 'points', 'wins']]
                 wcc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
-                limit_wcc = len(wcc_display) if show_full_wcc else 10
+                
+                # Format POS without decimal (.0 removal)
+                wcc_display['POS'] = wcc_display['POS'].apply(
+                    lambda x: str(int(float(x))) if pd.notna(x) and str(x).replace('.0', '').isdigit() else str(x)
+                )
+
                 render_standings_bar_card(
                     wcc_display,
-                    title="Constructor Standings" if show_full_wcc else "Top 10 Constructors",
+                    title="Constructor Standings",
                     name_column="TEAM",
                     points_column="PTS",
-                    limit=limit_wcc,
+                    limit=len(wcc_display),
                     highlight_top=True,
                 )
             else:
