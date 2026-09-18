@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from html import escape
+import unicodedata
 
 import streamlit as st
 
@@ -1545,14 +1546,19 @@ def get_team_color(identifier: str | None, default: str = "#e10600") -> str:
     """
     if not identifier:
         return default
-    text = str(identifier).lower().strip()
+    raw = str(identifier).lower().strip()
+    try:
+        norm = unicodedata.normalize('NFKD', raw)
+        text = norm.encode('ASCII', 'ignore').decode('utf-8').lower().strip()
+    except Exception:
+        text = raw
 
     # McLaren - Orange
     if any(k in text for k in ["mclaren", "norris", "piastri"]) or text in ["mcl", "nor", "pia"]:
         return "#ff8000"
 
     # Red Bull - Dark Blue
-    if any(k in text for k in ["red bull", "verstappen", "perez"]) or text in ["rbr", "ver", "per"]:
+    if any(k in text for k in ["red bull", "redbull", "verstappen", "perez", "checo"]) or text in ["rbr", "ver", "per"]:
         return "#1e41ff"
 
     # Ferrari - Racing Red
@@ -1568,11 +1574,11 @@ def get_team_color(identifier: str | None, default: str = "#e10600") -> str:
         return "#00a0dd"
 
     # Aston Martin - British Racing Green
-    if any(k in text for k in ["aston martin", "alonso", "stroll"]) or text in ["amr", "alo", "str"]:
+    if any(k in text for k in ["aston martin", "racing point", "force india", "alonso", "stroll"]) or text in ["amr", "alo", "str"]:
         return "#229971"
 
     # Alpine - Alpine Blue
-    if any(k in text for k in ["alpine", "gasly", "ocon", "doohan"]) or text in ["alp", "gas", "oco", "doo"]:
+    if any(k in text for k in ["alpine", "renault", "gasly", "ocon", "doohan"]) or text in ["alp", "gas", "oco", "doo"]:
         return "#0093cc"
 
     # Williams - Williams Blue
@@ -1580,11 +1586,11 @@ def get_team_color(identifier: str | None, default: str = "#e10600") -> str:
         return "#64c4ff"
 
     # Racing Bulls / RB / AlphaTauri / Toro Rosso - Electric Blue
-    if any(k in text for k in ["racing bulls", "alphatauri", "toro rosso", "vcarb", "ricciardo", "tsunoda", "lawson", "hadjar"]) or text in ["rb", "vcarb", "ric", "tsu", "law", "had"] or text.startswith("rb ") or " rb" in text:
+    if any(k in text for k in ["racing bulls", "alphatauri", "toro rosso", "vcarb", "ricciardo", "tsunoda", "lawson", "hadjar", "rb f1"]) or text in ["rb", "vcarb", "ric", "tsu", "law", "had"] or text.startswith("rb ") or " rb" in text:
         return "#6692ff"
 
-    # Sauber / Kick Sauber / Alfa Romeo - Neon Green
-    if any(k in text for k in ["sauber", "kick sauber", "alfa romeo", "bottas", "zhou", "bortoleto"]) or text in ["sau", "bot", "zho", "bor"]:
+    # Sauber / Kick Sauber / Stake / Alfa Romeo - Neon Green
+    if any(k in text for k in ["sauber", "kick sauber", "stake", "alfa romeo", "bottas", "zhou", "bortoleto"]) or text in ["sau", "bot", "zho", "bor"]:
         return "#52e252"
 
     # Haas - Haas Red
@@ -1640,7 +1646,15 @@ def render_standings_bar_card(
         width_pct = max(0.0, min(100.0, (points / max_points) * 100.0))
         
         # Color driver or constructor bar in their exact team color
-        bar_color = get_team_color(name)
+        team_name = _pick_first_value(row, ["TEAM", "constructorName", "TeamName"], "")
+        if not team_name and "constructorNames" in row:
+            val = row["constructorNames"]
+            if isinstance(val, list) and len(val) > 0:
+                team_name = val[0]
+            elif pd.notna(val) and str(val).strip():
+                team_name = str(val).strip()
+
+        bar_color = get_team_color(team_name) if team_name else get_team_color(name)
 
         rows_html.append(
             "<div class='standings-row'>"

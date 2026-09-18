@@ -329,9 +329,17 @@ def render_standings(year, round_num) -> None:
             st.markdown("<h3>World Driver Championship</h3>", unsafe_allow_html=True)
             wdc = get_driver_standings(year, round_num)
             if not wdc.empty:
-                wdc_display = wdc[['position', 'givenName', 'familyName', 'points', 'wins']].copy()
+                wdc_display = wdc.copy()
                 wdc_display['DRIVER'] = wdc_display['givenName'] + " " + wdc_display['familyName']
-                wdc_display = wdc_display[['position', 'DRIVER', 'points', 'wins']]
+                if 'constructorNames' in wdc_display:
+                    wdc_display['TEAM'] = wdc_display['constructorNames'].apply(
+                        lambda x: x[0] if isinstance(x, list) and len(x) > 0 else (str(x) if pd.notna(x) else "")
+                    )
+                elif 'constructorName' in wdc_display:
+                    wdc_display['TEAM'] = wdc_display['constructorName']
+                else:
+                    wdc_display['TEAM'] = ""
+                wdc_display = wdc_display[['position', 'DRIVER', 'TEAM', 'points', 'wins']]
                 wdc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
                 
                 # Format POS without decimal (.0 removal)
