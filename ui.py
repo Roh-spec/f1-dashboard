@@ -813,20 +813,113 @@ def inject_retro_css() -> None:
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
         }
 
-        /* Streamlit Tabs */
-        button[data-baseweb="tab"] {
-            font-family: 'Titillium Web', sans-serif !important;
-            font-weight: 700 !important;
-            font-size: 0.95rem !important;
-            letter-spacing: 0.06em !important;
-            text-transform: uppercase !important;
-            color: var(--text-muted) !important;
-            padding: 8px 16px !important;
+        /* STREAMLIT ALERT NOTIFICATIONS (CIRCUIT SLATE & AMBER PALETTE) */
+        div[data-testid="stAlert"] {
+            background-color: #12161f !important;
+            border-radius: 0px !important;
+            border: 1px solid var(--border-card) !important;
+            padding: 12px 18px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13.5px !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
         }
 
-        button[data-baseweb="tab"][aria-selected="true"] {
-            color: var(--text-heading) !important;
-            border-bottom: 2px solid var(--accent-red) !important;
+        /* Warning Alerts (#f5a623 Amber, replaces off-palette olive/green) */
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]),
+        div.stAlert:has([data-testid="stNotificationContentWarning"]),
+        div[data-testid="stAlert"][data-test-alert="warning"],
+        div[data-baseweb="notification"][kind="warning"] {
+            background-color: rgba(245, 166, 35, 0.08) !important;
+            border: 1px solid rgba(245, 166, 35, 0.45) !important;
+            border-left: 4px solid #f5a623 !important;
+        }
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]) *,
+        div.stAlert:has([data-testid="stNotificationContentWarning"]) * {
+            color: #f0f3f6 !important;
+        }
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]) svg,
+        div.stAlert:has([data-testid="stNotificationContentWarning"]) svg {
+            fill: #f5a623 !important;
+            color: #f5a623 !important;
+        }
+
+        /* Info Alerts */
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]),
+        div.stAlert:has([data-testid="stNotificationContentInfo"]) {
+            background-color: #12161f !important;
+            border: 1px solid var(--border-card) !important;
+            border-left: 4px solid var(--accent-red) !important;
+        }
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]) * {
+            color: #f0f3f6 !important;
+        }
+
+        /* Error Alerts */
+        div[data-testid="stAlert"]:has([data-testid="stNotificationContentError"]),
+        div.stAlert:has([data-testid="stNotificationContentError"]) {
+            background-color: rgba(225, 6, 0, 0.08) !important;
+            border: 1px solid rgba(225, 6, 0, 0.45) !important;
+            border-left: 4px solid #e10600 !important;
+        }
+
+        /* NAVIGATION ACTION BUTTONS (NEXT RACE / PREV RACE) */
+        .st-key-dialog_page_header_nav button,
+        .st-key-dialog_end_race_nav button,
+        div[data-testid="stButton"]:has(button[key*="next_race"]) button,
+        div[data-testid="stButton"]:has(button[key*="previous_race"]) button,
+        button[key*="next_race"],
+        button[key*="previous_race"] {
+            background: linear-gradient(135deg, #1d2330 0%, #151a24 100%) !important;
+            color: #ffffff !important;
+            border: 1.5px solid var(--accent-red) !important;
+            border-radius: 0px !important;
+            box-shadow: 0 0 14px rgba(225, 6, 0, 0.35) !important;
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.10em !important;
+            text-transform: uppercase !important;
+            transition: all 0.16s ease !important;
+        }
+
+        .st-key-dialog_page_header_nav button:hover,
+        .st-key-dialog_end_race_nav button:hover,
+        div[data-testid="stButton"]:has(button[key*="next_race"]) button:hover,
+        div[data-testid="stButton"]:has(button[key*="previous_race"]) button:hover,
+        button[key*="next_race"]:hover,
+        button[key*="previous_race"]:hover {
+            background: linear-gradient(135deg, #e10600 0%, #b30500 100%) !important;
+            color: #ffffff !important;
+            border-color: #ff5247 !important;
+            box-shadow: 0 0 22px rgba(225, 6, 0, 0.65) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .st-key-dialog_page_header_nav button[data-testid="baseButton-primary"],
+        .st-key-dialog_end_race_nav button[data-testid="baseButton-primary"] {
+            background: linear-gradient(135deg, #e10600 0%, #b30500 100%) !important;
+            border: 1.5px solid #ff3b30 !important;
+            box-shadow: 0 0 18px rgba(225, 6, 0, 0.55) !important;
+        }
+
+        .st-key-dialog_page_header_nav button[data-testid="baseButton-primary"]:hover,
+        .st-key-dialog_end_race_nav button[data-testid="baseButton-primary"]:hover {
+            background: linear-gradient(135deg, #ff2a20 0%, #c90500 100%) !important;
+            box-shadow: 0 0 26px rgba(225, 6, 0, 0.85) !important;
+        }
+
+        /* Standings full-grid expander / toggle styling */
+        div[data-testid="stToggle"] label p,
+        div[data-testid="stCheckbox"] label p {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.08em !important;
+            color: var(--text-muted) !important;
+        }
+        div[data-testid="stToggle"]:hover label p,
+        div[data-testid="stCheckbox"]:hover label p {
+            color: #f0f3f6 !important;
         }
 
         /* General Card Containers */

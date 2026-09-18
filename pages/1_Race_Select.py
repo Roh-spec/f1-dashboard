@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 from html import escape
 
 import streamlit as st
@@ -132,7 +132,8 @@ def render_controls():
 
         with col1:
             with st.container(key="cell_select_year"):
-                selected_year = st.selectbox("SELECT YEAR", list(range(2025, 1999, -1)))
+                current_year = date.today().year
+                selected_year = st.selectbox("SELECT YEAR", list(range(current_year, 1999, -1)))
 
         schedule = get_schedule(selected_year)
         races = schedule[schedule["EventFormat"] != "testing"]
@@ -148,7 +149,7 @@ def render_controls():
         col_primary, col_secondary, col_tertiary = st.columns([1.6, 1.2, 1.2])
 
         with col_primary:
-            if st.button("⚡ LOAD ARCHIVE DATA", type="primary", use_container_width=True, key="btn_load_archive"):
+            if st.button("LOAD ARCHIVE DATA", type="primary", use_container_width=True, key="btn_load_archive"):
                 st.session_state.selected_year = selected_year
                 st.session_state.selected_race = selected_race
                 st.session_state.selected_event = event

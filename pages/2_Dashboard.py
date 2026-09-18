@@ -19,7 +19,7 @@ get_track_wiki_summary = sessions.get_track_wiki_summary
 load_session_data = sessions.load_session_data
 get_openf1_weather = getattr(sessions, "get_openf1_weather", None)
 get_openf1_race_control = getattr(sessions, "get_openf1_race_control", None)
-from track_analysis import render_circuit_map, render_circuit_records, render_track_analysis
+from track_analysis import CIRCUIT_ALIASES, render_circuit_map, render_circuit_records, render_track_analysis
 from charts import plot_driver_telemetry_comparison
 
 
@@ -46,19 +46,20 @@ def render_event_snapshot(event, event_sessions) -> None:
         )
         season_val = str(event["EventDate"].year)
         round_val = f"Round {event.get('RoundNumber', '')}"
-        venue_val = str(event.get("EventName", ""))
+        circuit_val = str(event.get("EventName", ""))
         loc_val = f"{event.get('Location', '')}, {event.get('Country', '')}"
         date_val = str(event["EventDate"].date())
-        sessions_val = f"{session_count} archived sessions"
-        format_val = str(event.get("EventFormat", "race")).title()
-        format_note = f"{len(practice_sessions)} practice and {len(result_sessions)} result sessions"
+        format_name = str(event.get("EventFormat", "race")).title()
+        format_note = f"{format_name} Weekend"
+        sessions_val = f"{session_count} Sessions"
+        sessions_note = f"{len(practice_sessions)} Practice · {len(result_sessions)} Qual/Race"
 
         st.markdown(
             f"<div class='summary-strip'>\n"
-            f"{_format_summary_card('Season', season_val, round_val)}\n"
-            f"{_format_summary_card('Venue', venue_val, loc_val)}\n"
-            f"{_format_summary_card('Date', date_val, sessions_val)}\n"
-            f"{_format_summary_card('Format', format_val, format_note)}\n"
+            f"{_format_summary_card('Round & Season', round_val, f'{season_val} FIA Championship')}\n"
+            f"{_format_summary_card('Venue & Stage', circuit_val, loc_val)}\n"
+            f"{_format_summary_card('Date & Format', date_val, format_note)}\n"
+            f"{_format_summary_card('Archived Sessions', sessions_val, sessions_note)}\n"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -78,9 +79,33 @@ def render_track_details(year, race_name, event) -> None:
         with col_track1:
             with st.container(border=True, key="track_archive_panel"):
                 st.markdown("<h3>Track Archives</h3>", unsafe_allow_html=True)
-                circuit_name = str(event["Location"]) + " Grand Prix"
-                wiki_summary = get_track_wiki_summary(circuit_name, str(event["EventName"]), sentences=4)
-                st.write(f"> {wiki_summary}")
+                loc_name = str(event.get("Location", "")).strip()
+                event_name = str(event.get("EventName", "")).strip()
+                primary_candidate = CIRCUIT_ALIASES.get(loc_name.lower()) or CIRCUIT_ALIASES.get(event_name.lower())
+                if not primary_candidate:
+                    primary_candidate = f"{loc_name} Circuit" if loc_name else event_name
+
+                fallback_candidate = event_name if primary_candidate != event_name else f"{loc_name} Grand Prix"
+
+                wiki_summary = get_track_wiki_summary(primary_candidate, fallback_candidate, sentences=4)
+                if wiki_summary:
+                    st.markdown(
+                        f"<div class='track-archive-quote' style='background: #11151d; border-left: 3px solid #e10600; padding: 14px 18px; margin-bottom: 18px; color: #d0d7de; font-size: 0.90rem; line-height: 1.6; font-family: \"Inter\", sans-serif;'>"
+                        f"{wiki_summary}"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        """
+                        <div style="background: #11151d; border: 1px dashed #262c36; border-radius: 0px; padding: 22px 18px; text-align: center; margin-bottom: 18px;">
+                            <div style="font-size: 1.35rem; color: #8b949e; margin-bottom: 6px; opacity: 0.75;">🏛️</div>
+                            <div style="font-family: 'Titillium Web', sans-serif; font-size: 0.85rem; font-weight: 700; color: #8b949e; letter-spacing: 0.08em; text-transform: uppercase;">Track Archives Unavailable</div>
+                            <div style="font-family: 'Inter', sans-serif; font-size: 0.78rem; color: #4b5563; margin-top: 4px;">Historical overview not indexed for this circuit.</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
                 render_track_analysis(event)
 
@@ -258,17 +283,6 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
                 )
                 present_categories.add(cat)
 
-        # Build legend handles displaying both the pace curve and every present incident category
-        legend_handles = [
-            Line2D([0], [0], color="#e10600", lw=2.0, label="Median Lap Pace (s)")
-        ]
-        for cat, col in incident_colors.items():
-            if cat in present_categories:
-                count = (incident_df["Category"] == cat).sum()
-                legend_handles.append(
-                    Patch(facecolor=col, edgecolor=col, alpha=0.45, label=f"{cat} ({count}x)")
-                )
-
         ax_pace.set_title("Lap Pace vs Incident Windows", color="#f0f3f6", fontsize=10, weight="bold", fontfamily="monospace")
         ax_pace.set_xlabel("Lap", color="#8b949e", fontsize=9)
         ax_pace.set_ylabel("Lap Time (s)", color="#8b949e", fontsize=9)
@@ -276,15 +290,6 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
         for spine in ax_pace.spines.values():
             spine.set_color("#262c36")
         ax_pace.grid(color="#262c36", alpha=0.5, linewidth=0.6)
-        ax_pace.legend(
-            handles=legend_handles,
-            facecolor="#161b22",
-            edgecolor="#262c36",
-            labelcolor="#f0f3f6",
-            fontsize=8,
-            framealpha=0.92,
-            loc="best",
-        )
 
         st.pyplot(fig, use_container_width=True)
         plt.close(fig)
@@ -314,33 +319,6 @@ def render_track_condition_overlay(year, race_name, *args, **kwargs) -> None:
             st.caption("No major race-control incident windows detected in this overlay.")
 
 
-def render_stage_stats(event, event_sessions) -> None:
-    with st.container(border=True, key="dialog_stage_stats"):
-        practice_sessions = [name for name in event_sessions if name.startswith("Practice")]
-        result_sessions = [name for name in event_sessions if not name.startswith("Practice")]
-
-        st.markdown("<p class='section-kicker'>Grid Notes</p>", unsafe_allow_html=True)
-        st.markdown("<h2>Stage Stats</h2>", unsafe_allow_html=True)
-        round_title = str(event.get('RoundNumber', ''))
-        season_title = f"Season {event['EventDate'].year}"
-        circuit_title = str(event.get('EventName', ''))
-        loc_title = str(event.get('Location', ''))
-        country_title = str(event.get('Country', ''))
-        prac_note = f"{len(practice_sessions)} practice sessions"
-        sess_title = str(len(event_sessions))
-        res_note = f"{len(result_sessions)} result sessions"
-
-        st.markdown(
-            f"<div class='summary-strip'>\n"
-            f"{_format_summary_card('Round', round_title, season_title)}\n"
-            f"{_format_summary_card('Circuit', circuit_title, loc_title)}\n"
-            f"{_format_summary_card('Country', country_title, prac_note)}\n"
-            f"{_format_summary_card('Sessions', sess_title, res_note)}\n"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-
-
 def render_standings(year, round_num) -> None:
     st.markdown("<div class='section-ribbon'><span>CHAMPIONSHIP STANDINGS</span><span>WDC & WCC</span></div>", unsafe_allow_html=True)
 
@@ -348,26 +326,37 @@ def render_standings(year, round_num) -> None:
 
     with col1:
         with st.container(border=True):
-            st.markdown("<h3>World Driver Championship</h3>", unsafe_allow_html=True)
+            head_col1, toggle_col1 = st.columns([1.7, 1.3], vertical_alignment="center")
+            with head_col1:
+                st.markdown("<h3 style='margin-bottom:0;'>World Driver Championship</h3>", unsafe_allow_html=True)
+            with toggle_col1:
+                show_full_wdc = st.toggle("Show full grid", key="toggle_full_grid_wdc", value=False)
+
             wdc = get_driver_standings(year, round_num)
             if not wdc.empty:
                 wdc_display = wdc[['position', 'givenName', 'familyName', 'points', 'wins']].copy()
                 wdc_display['DRIVER'] = wdc_display['givenName'] + " " + wdc_display['familyName']
                 wdc_display = wdc_display[['position', 'DRIVER', 'points', 'wins']]
                 wdc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
+                limit_wdc = len(wdc_display) if show_full_wdc else 10
                 render_standings_bar_card(
                     wdc_display,
-                    title="Driver Standings",
+                    title="Driver Standings" if show_full_wdc else "Top 10 Drivers",
                     name_column="DRIVER",
                     points_column="PTS",
-                    limit=20,
+                    limit=limit_wdc,
                 )
             else:
                 st.warning("WDC Standings unavailable.")
 
     with col2:
         with st.container(border=True):
-            st.markdown("<h3>World Constructor Championship</h3>", unsafe_allow_html=True)
+            head_col2, toggle_col2 = st.columns([1.7, 1.3], vertical_alignment="center")
+            with head_col2:
+                st.markdown("<h3 style='margin-bottom:0;'>World Constructor Championship</h3>", unsafe_allow_html=True)
+            with toggle_col2:
+                show_full_wcc = st.toggle("Show full grid", key="toggle_full_grid_wcc", value=False)
+
             wcc = get_constructor_standings(year, round_num)
             if not wcc.empty:
                 wcc_display = wcc[['position', 'constructorName', 'points', 'wins']].copy() if 'constructorName' in wcc else wcc[['position', 'constructorNames', 'points', 'wins']].copy()
@@ -378,12 +367,13 @@ def render_standings(year, round_num) -> None:
 
                 wcc_display = wcc_display[['position', 'TEAM', 'points', 'wins']]
                 wcc_display.rename(columns={'position': 'POS', 'points': 'PTS', 'wins': 'WINS'}, inplace=True)
+                limit_wcc = len(wcc_display) if show_full_wcc else 10
                 render_standings_bar_card(
                     wcc_display,
-                    title="Constructor Standings",
+                    title="Constructor Standings" if show_full_wcc else "Top 10 Constructors",
                     name_column="TEAM",
                     points_column="PTS",
-                    limit=20,
+                    limit=limit_wcc,
                     highlight_top=True,
                 )
             else:
@@ -421,8 +411,9 @@ def render_end_race_bar(event, selected_year) -> None:
         with right_col:
             if next_event is not None:
                 if st.button(
-                    "NEXT RACE",
+                    "NEXT RACE →",
                     key="race_analysis_next_race_link",
+                    type="primary",
                     use_container_width=True,
                 ):
                     st.session_state.selected_event = next_event
@@ -511,7 +502,7 @@ def render_page_header_navigation(event, selected_year: int) -> None:
 
         with left_col:
             if prev_event is not None and st.button(
-                "PREV RACE",
+                "← PREV RACE",
                 key="race_analysis_top_previous_race",
                 use_container_width=True,
             ):
@@ -536,8 +527,9 @@ def render_page_header_navigation(event, selected_year: int) -> None:
 
         with right_col:
             if next_event is not None and st.button(
-                "NEXT RACE",
+                "NEXT RACE →",
                 key="race_analysis_top_next_race",
+                type="primary",
                 use_container_width=True,
             ):
                 st.session_state.selected_event = next_event
@@ -615,9 +607,8 @@ else:
     # 1. Page Header & Navigation
     render_page_header_navigation(event, selected_year)
 
-    # 2. Overview: Race Briefing & Stage Stats
+    # 2. Overview: Consolidated Race Briefing
     render_event_snapshot(event, event_sessions)
-    render_stage_stats(event, event_sessions)
 
     # 3. Circuit Analysis
     render_track_details(selected_year, selected_race, event)

@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 import streamlit as st
+from datetime import date
 import sessions
 from ui import get_team_color
 
@@ -84,7 +85,7 @@ def render_page() -> None:
     with st.container(border=True, key="dialog_driver_select"):
         st.markdown("<p class='section-kicker'>Comparison Setup</p>", unsafe_allow_html=True)
         st.markdown("<h2>Select Drivers</h2>", unsafe_allow_html=True)
-        current_year = 2025
+        current_year = date.today().year
         season_options = list(range(current_year, 1999, -1))
         selected_season = st.selectbox("SEASON", season_options, index=1)
 

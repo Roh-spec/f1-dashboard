@@ -12,6 +12,12 @@ import pandas as pd
 import streamlit as st
 import wikipedia
 
+try:
+    wikipedia.API_URL = "https://en.wikipedia.org/w/api.php"
+    wikipedia.set_user_agent("F1-Race-Control-Dashboard/1.0 (https://github.com/f1-dashboard; contact@f1dash.org)")
+except Exception:
+    pass
+
 
 SESSION_CODES = {
     "Practice 1": "FP1",
@@ -728,12 +734,6 @@ def load_session_data(year, race_name, session_name, *args, **kwargs):
             best_session = session
             best_results = curr_results
             best_laps = curr_laps
-
-            # Tier 2: Best-effort telemetry load (for speed/throttle/brake traces)
-            try:
-                session.load(telemetry=True, weather=False, messages=False)
-            except Exception:
-                pass
             break
 
     # If live timing laps failed or unavailable, check Jolpica fallback for race sessions
@@ -1148,15 +1148,30 @@ def get_team_history_blurb(team_name):
 
 @st.cache_data(ttl=86400)
 def get_track_wiki_summary(primary_title, fallback_title=None, sentences=4):
-    try:
-        return wikipedia.summary(primary_title, sentences=sentences)
-    except Exception:
-        if fallback_title:
-            try:
-                return wikipedia.summary(fallback_title, sentences=sentences)
-            except Exception:
-                pass
-        return "Data unavailable. Unable to load track history."
+    candidates = []
+    if primary_title:
+        p_clean = str(primary_title).strip()
+        candidates.append(p_clean)
+        if not p_clean.lower().endswith("circuit"):
+            candidates.append(f"{p_clean} Circuit")
+    if fallback_title:
+        clean_fallback = str(fallback_title).strip()
+        if clean_fallback not in candidates:
+            candidates.append(clean_fallback)
+        if not clean_fallback.lower().endswith("circuit"):
+            candidates.append(f"{clean_fallback} Circuit")
+
+    for title in candidates:
+        if not title or len(title) < 3:
+            continue
+        try:
+            summary = wikipedia.summary(title, sentences=sentences, auto_suggest=False)
+            if summary and len(summary.strip()) > 35 and "may refer to:" not in summary.lower():
+                return summary.strip()
+        except Exception:
+            continue
+
+    return None
 
 
 def get_team_wiki_profile(constructor_id, constructor_name, selected_season):
