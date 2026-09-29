@@ -146,7 +146,7 @@ def render_controls():
 
         st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
 
-        col_primary, col_secondary, col_tertiary = st.columns([1.6, 1.2, 1.2])
+        col_primary, col_secondary, col_tertiary, col_quaternary = st.columns([1.5, 1.1, 1.0, 1.0])
 
         with col_primary:
             if st.button("LOAD ARCHIVE DATA", type="primary", use_container_width=True, key="btn_load_archive"):
@@ -162,6 +162,10 @@ def render_controls():
         with col_tertiary:
             if st.button("TEAM WIKI", use_container_width=True, key="btn_team_wiki"):
                 st.switch_page("pages/4_Team_Wiki.py")
+
+        with col_quaternary:
+            if st.button("RACERS WIKI", use_container_width=True, key="btn_racers_wiki"):
+                st.switch_page("pages/5_Racers_Wiki.py")
 
         return selected_year, selected_race, event
 

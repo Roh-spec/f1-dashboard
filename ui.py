@@ -1445,8 +1445,8 @@ def render_topbar(current_index: int = 0, route_map: dict | None = None, **kwarg
             unsafe_allow_html=True,
         )
 
-    options = ["Race Select", "Race Analysis", "Driver Compare", "Team Wiki"]
-    icons = ["flag", "bar-chart-line", "people", "trophy"]
+    options = ["Race Select", "Race Analysis", "Driver Compare", "Team Wiki", "Racers Wiki"]
+    icons = ["flag", "bar-chart-line", "people", "shield-shaded", "person-lines-fill"]
 
     if option_menu is not None:
         with col_nav:

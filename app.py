@@ -21,8 +21,9 @@ page_select = st.Page("pages/1_Race_Select.py", title="Race Select", url_path="R
 page_dashboard = st.Page("pages/2_Dashboard.py", title="Race Analysis", url_path="Dashboard")
 page_driver_compare = st.Page("pages/3_Driver_Compare.py", title="Driver Comparison", url_path="Driver_Compare")
 page_team_wiki = st.Page("pages/4_Team_Wiki.py", title="Team Wiki", url_path="Team_Wiki")
+page_racers_wiki = st.Page("pages/5_Racers_Wiki.py", title="Racers Wiki", url_path="Racers_Wiki")
 
-pg = st.navigation([page_select, page_dashboard, page_driver_compare, page_team_wiki], position="hidden")
+pg = st.navigation([page_select, page_dashboard, page_driver_compare, page_team_wiki, page_racers_wiki], position="hidden")
 
 # Reset guard so topbar renders exactly once per rerun from app.py
 st.session_state["_topbar_rendered_in_run"] = False
@@ -32,12 +33,14 @@ route_map = {
     "Race Analysis": page_dashboard,
     "Driver Compare": page_driver_compare,
     "Team Wiki": page_team_wiki,
+    "Racers Wiki": page_racers_wiki,
 }
 url_to_index = {
     "Race_Select": 0,
     "Dashboard": 1,
     "Driver_Compare": 2,
     "Team_Wiki": 3,
+    "Racers_Wiki": 4,
 }
 current_index = url_to_index.get(getattr(pg, "url_path", "Race_Select"), 0)
 
