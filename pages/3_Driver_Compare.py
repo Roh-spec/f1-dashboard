@@ -87,7 +87,9 @@ def render_page() -> None:
         st.markdown("<h2>Select Drivers</h2>", unsafe_allow_html=True)
         current_year = date.today().year
         season_options = list(range(current_year, 1999, -1))
-        selected_season = st.selectbox("SEASON", season_options, index=1)
+        prefill_season = st.session_state.get("compare_season_prefill")
+        season_idx = season_options.index(int(prefill_season)) if (prefill_season and int(prefill_season) in season_options) else 1
+        selected_season = st.selectbox("SEASON", season_options, index=season_idx)
 
         season_directory = get_drivers_for_season(int(selected_season))
         if season_directory.empty:
@@ -101,13 +103,17 @@ def render_page() -> None:
 
         name_to_id = dict(zip(season_directory["fullName"], season_directory["driverId"]))
 
-        default_one = driver_names[0]
-        default_two = driver_names[1]
+        prefill_driver = st.session_state.get("compare_driver_prefill")
+        default_one = prefill_driver if (prefill_driver and prefill_driver in driver_names) else driver_names[0]
+        default_one_idx = driver_names.index(default_one) if default_one in driver_names else 0
+
+        alt_candidates = [n for n in driver_names if n != default_one]
+        default_two = alt_candidates[0] if alt_candidates else driver_names[1]
 
         col1, col2 = st.columns(2)
 
         with col1:
-            driver_one = st.selectbox("DRIVER A", driver_names, index=0)
+            driver_one = st.selectbox("DRIVER A", driver_names, index=default_one_idx)
 
         with col2:
             alt_names = [name for name in driver_names if name != driver_one]
