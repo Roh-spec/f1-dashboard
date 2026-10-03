@@ -1134,64 +1134,34 @@ def _render_driver_card(drv: dict, is_champion: bool = True, rank_num: int | Non
     for h in honors:
         honors_html += f"<span style=\"font-family: 'JetBrains Mono', monospace; font-size: 0.60rem; color: #f5a623; border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.05); padding: 1px 6px; border-radius: 2px; margin-right: 4px; display: inline-block; margin-bottom: 2px;\">{h}</span>"
 
-    return f"""
-    <div style="background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-top: 3px solid {color}; border-radius: 6px; padding: 14px 16px; margin-bottom: 8px; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-        <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center;">
-                    {rank_html}
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; color: #8e929b; letter-spacing: 0.06em; text-transform: uppercase;">{badge_text}</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    {active_badge}
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; color: {color}; background: rgba(255,255,255,0.04); border: 1px solid {color}; padding: 1px 6px; border-radius: 2px;">{country}</span>
-                </div>
-            </div>
-            <div style="font-family: 'Titillium Web', sans-serif; font-size: 1.25rem; font-weight: 700; color: #f0f3f6; letter-spacing: 0.02em; margin-bottom: 8px;">{name}</div>
-
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: rgba(0,0,0,0.25); padding: 8px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px;">
-                <div style="text-align: center;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">TITLES</div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #f5a623;">{titles}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">WINS</div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #00e5ff;">{wins}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">POLES</div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #a855f7;">{poles}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">PODIUMS</div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #10b981;">{podiums}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">POINTS</div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 800; color: #ffffff; white-space: nowrap;">{points}</div>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 4px; padding: 4px 8px; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;">
-                <span style="color: #8e929b;">Starts: <strong style="color: #ffffff;">{starts}</strong></span>
-                <span style="color: #8e929b;">Win Rate: <strong style="color: #00e5ff;">{win_rate:.1f}%</strong></span>
-                <span style="color: #8e929b;">Podium Rate: <strong style="color: #10b981;">{podium_rate:.1f}%</strong></span>
-            </div>
-
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #8e929b; margin-bottom: 6px;">
-                Debut: <span style="color: #c9d1d9;">{debut}</span> &bull; 1st Win: <span style="color: #c9d1d9;">{first_win}</span>
-            </div>
-
-            <div style="margin-bottom: 8px;">
-                {honors_html}
-            </div>
-        </div>
-
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #8e929b; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; line-height: 1.4;">
-            <span style="color: #6b7280;">{footer_label}:</span> <span style="color: #c9d1d9;">{footer_val}</span>
-        </div>
-    </div>
-    """
+    return f"""<div style="background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-top: 3px solid {color}; border-radius: 6px; padding: 14px 16px; margin-bottom: 8px; min-height: 270px; display: flex; flex-direction: column; justify-content: space-between;">
+<div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+<div style="display: flex; align-items: center;">{rank_html}<span style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; color: #8e929b; letter-spacing: 0.06em; text-transform: uppercase;">{badge_text}</span></div>
+<div style="display: flex; align-items: center; gap: 6px;">{active_badge}<span style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; color: {color}; background: rgba(255,255,255,0.04); border: 1px solid {color}; padding: 1px 6px; border-radius: 2px;">{country}</span></div>
+</div>
+<div style="font-family: 'Titillium Web', sans-serif; font-size: 1.25rem; font-weight: 700; color: #f0f3f6; letter-spacing: 0.02em; margin-bottom: 8px;">{name}</div>
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: rgba(0,0,0,0.25); padding: 8px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px;">
+<div style="text-align: center;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">TITLES</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #f5a623;">{titles}</div></div>
+<div style="text-align: center;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">WINS</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #00e5ff;">{wins}</div></div>
+<div style="text-align: center;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">POLES</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #a855f7;">{poles}</div></div>
+<div style="text-align: center;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">PODIUMS</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #10b981;">{podiums}</div></div>
+<div style="text-align: center;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: #8e929b; text-transform: uppercase;">POINTS</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 800; color: #ffffff; white-space: nowrap;">{points}</div></div>
+</div>
+<div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 4px; padding: 4px 8px; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;">
+<span style="color: #8e929b;">Starts: <strong style="color: #ffffff;">{starts}</strong></span>
+<span style="color: #8e929b;">Win Rate: <strong style="color: #00e5ff;">{win_rate:.1f}%</strong></span>
+<span style="color: #8e929b;">Podium Rate: <strong style="color: #10b981;">{podium_rate:.1f}%</strong></span>
+</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #8e929b; margin-bottom: 6px;">
+Debut: <span style="color: #c9d1d9;">{debut}</span> &bull; 1st Win: <span style="color: #c9d1d9;">{first_win}</span>
+</div>
+<div style="margin-bottom: 8px;">{honors_html}</div>
+</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #8e929b; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; line-height: 1.4;">
+<span style="color: #6b7280;">{footer_label}:</span> <span style="color: #c9d1d9;">{footer_val}</span>
+</div>
+</div>"""
 
 
 def _get_all_drivers_list() -> list[dict]:
@@ -1304,15 +1274,17 @@ def render_page() -> None:
                 unsafe_allow_html=True,
             )
 
-            cols = st.columns(3)
-            for idx, drv in enumerate(all_drivers):
-                col_idx = idx % 3
-                with cols[col_idx]:
-                    st.markdown(_render_driver_card(drv, is_champion=drv.get("is_champion", True), rank_num=idx + 1), unsafe_allow_html=True)
-                    if st.button("VS COMPARE", key=f"btn_sort_comp_{drv['name']}_{idx}", use_container_width=True):
-                        st.session_state.compare_driver_prefill = drv["name"]
-                        st.switch_page("pages/3_Driver_Compare.py")
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+            for row_start in range(0, len(all_drivers), 3):
+                row_drivers = all_drivers[row_start : row_start + 3]
+                cols = st.columns(3)
+                for c_idx, drv in enumerate(row_drivers):
+                    with cols[c_idx]:
+                        rank_idx = row_start + c_idx + 1
+                        st.html(_render_driver_card(drv, is_champion=drv.get("is_champion", True), rank_num=rank_idx))
+                        if st.button("VS COMPARE", key=f"btn_sort_comp_{drv['name']}_{row_start + c_idx}", use_container_width=True):
+                            st.session_state.compare_driver_prefill = drv["name"]
+                            st.switch_page("pages/3_Driver_Compare.py")
+                        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
         return
 
@@ -1356,21 +1328,18 @@ def render_page() -> None:
             )
 
             num_drivers = len(drivers)
-            if num_drivers == 1:
-                cols = st.columns(1)
-            elif num_drivers == 2:
-                cols = st.columns(2)
-            else:
-                cols = st.columns(3)
+            col_count = 1 if num_drivers == 1 else (2 if num_drivers == 2 else 3)
 
-            for idx, drv in enumerate(drivers):
-                col_idx = idx % len(cols)
-                with cols[col_idx]:
-                    st.markdown(_render_driver_card(drv, is_champion=True), unsafe_allow_html=True)
-                    if st.button("VS COMPARE", key=f"btn_champ_comp_{drv['name']}_{layer['tier']}_{idx}", use_container_width=True):
-                        st.session_state.compare_driver_prefill = drv["name"]
-                        st.switch_page("pages/3_Driver_Compare.py")
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+            for row_start in range(0, num_drivers, col_count):
+                row_drivers = drivers[row_start : row_start + col_count]
+                cols = st.columns(col_count)
+                for c_idx, drv in enumerate(row_drivers):
+                    with cols[c_idx]:
+                        st.html(_render_driver_card(drv, is_champion=True))
+                        if st.button("VS COMPARE", key=f"btn_champ_comp_{drv['name']}_{layer['tier']}_{row_start + c_idx}", use_container_width=True):
+                            st.session_state.compare_driver_prefill = drv["name"]
+                            st.switch_page("pages/3_Driver_Compare.py")
+                        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
     # SEPARATE PART: NON-CHAMPIONSHIP WINNERS
@@ -1463,38 +1432,25 @@ def render_page() -> None:
                     for idx, (drv_name, stat_val) in enumerate(cat["drivers"]):
                         rank_str = f"0{idx + 1}"
                         border_bottom = "border-bottom: 1px solid rgba(255,255,255,0.05);" if idx < 4 else ""
-                        items_html += f"""
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; {border_bottom}">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #8e929b;">{rank_str}</span>
-                                <span style="font-family: 'Titillium Web', sans-serif; font-size: 0.86rem; font-weight: 600; color: #f0f3f6;">{drv_name}</span>
-                            </div>
-                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: {cat['accent']};">{stat_val}</span>
-                        </div>
-                        """
-                    st.markdown(
-                        f"""
-                        <div style="background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid {cat['accent']}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;">
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; color: #f0f3f6; text-transform: uppercase; margin-bottom: 8px;">{cat['title']}</div>
-                            {items_html}
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
+                        items_html += f"""<div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; {border_bottom}"><div style="display: flex; align-items: center; gap: 6px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #8e929b;">{rank_str}</span><span style="font-family: 'Titillium Web', sans-serif; font-size: 0.86rem; font-weight: 600; color: #f0f3f6;">{drv_name}</span></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: {cat['accent']};">{stat_val}</span></div>"""
+                    st.html(
+                        f"""<div style="background: #161b22; border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid {cat['accent']}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;"><div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; color: #f0f3f6; text-transform: uppercase; margin-bottom: 8px;">{cat['title']}</div>{items_html}</div>"""
                     )
 
             # Driver boxes for non-championship winners
             st.markdown("<p class='section-kicker'>Driver Dossiers</p>", unsafe_allow_html=True)
             st.markdown("<h3>Non-Champion Driver Profiles</h3>", unsafe_allow_html=True)
 
-            nc_cols = st.columns(3)
-            for idx, drv in enumerate(non_champs):
-                col_idx = idx % 3
-                with nc_cols[col_idx]:
-                    st.markdown(_render_driver_card(drv, is_champion=False), unsafe_allow_html=True)
-                    if st.button("VS COMPARE", key=f"btn_nc_comp_{drv['name']}_{idx}", use_container_width=True):
-                        st.session_state.compare_driver_prefill = drv["name"]
-                        st.switch_page("pages/3_Driver_Compare.py")
-                    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+            for row_start in range(0, len(non_champs), 3):
+                row_drivers = non_champs[row_start : row_start + 3]
+                cols = st.columns(3)
+                for c_idx, drv in enumerate(row_drivers):
+                    with cols[c_idx]:
+                        st.html(_render_driver_card(drv, is_champion=False))
+                        if st.button("VS COMPARE", key=f"btn_nc_comp_{drv['name']}_{row_start + c_idx}", use_container_width=True):
+                            st.session_state.compare_driver_prefill = drv["name"]
+                            st.switch_page("pages/3_Driver_Compare.py")
+                        st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
 
 render_page()
