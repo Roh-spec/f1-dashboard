@@ -106,7 +106,7 @@ def render_team_box(team_profile, selected_season):
 
 TEAM_TROPHY_CABINET = {
     "ferrari": {"wcc": 16, "wdc": 15, "one_two": 85, "streak": "10 Wins (2002)"},
-    "mclaren": {"wcc": 9, "wdc": 12, "one_two": 49, "streak": "11 Wins (1988)"},
+    "mclaren": {"wcc": 9, "wdc": 13, "one_two": 49, "streak": "11 Wins (1988)"},
     "williams": {"wcc": 9, "wdc": 7, "one_two": 33, "streak": "7 Wins (1993)"},
     "mercedes": {"wcc": 8, "wdc": 9, "one_two": 59, "streak": "10 Wins (2016)"},
     "red_bull": {"wcc": 6, "wdc": 7, "one_two": 31, "streak": "15 Wins (2023)"},
