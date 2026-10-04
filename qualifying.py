@@ -66,7 +66,7 @@ def render_qualifying_telemetry(session, results):
             p2 = dom_res["pct_2"]
             t1 = dom_res["d1_lap_time"]
             t2 = dom_res["d2_lap_time"]
-            unit = dom_res.get("unit_label", "TURNS")
+            unit = dom_res.get("unit_label", "SECTORS")
             st.markdown(
                 f"""
                 <div style="background: #161b22; border: 1px solid #262c36; padding: 12px 18px; margin-top: 6px; margin-bottom: 14px;">

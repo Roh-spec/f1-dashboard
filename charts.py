@@ -603,7 +603,7 @@ def plot_micro_sector_dominance(session, p1_drv=None, p2_drv=None, num_sectors=2
             st.info("Track distance range invalid.")
             return None
 
-        # Fetch circuit info for rotation and corner turn boundaries
+        # Fetch circuit info for track rotation and corner labels
         rot = 0.0
         circuit_info = None
         try:
@@ -612,27 +612,9 @@ def plot_micro_sector_dominance(session, p1_drv=None, p2_drv=None, num_sectors=2
                 rot = getattr(circuit_info, "rotation", 0.0) or 0.0
         except Exception:
             rot = 0.0
-            circuit_info = None
 
-        corners_df = None
-        if circuit_info is not None and hasattr(circuit_info, "corners") and circuit_info.corners is not None and not circuit_info.corners.empty:
-            c_valid = circuit_info.corners.dropna(subset=["Distance"]).sort_values("Distance")
-            c_valid = c_valid[(c_valid["Distance"] > 0) & (c_valid["Distance"] < max_dist)]
-            if len(c_valid) >= 3:
-                corners_df = c_valid
-
-        # Segment lap path by actual circuit turns
-        if corners_df is not None and len(corners_df) >= 3:
-            c_dists = corners_df["Distance"].to_numpy()
-            midpoints = (c_dists[:-1] + c_dists[1:]) / 2.0
-            bins = np.concatenate(([0.0], midpoints, [max_dist]))
-            num_segments = len(bins) - 1
-            unit_label = "TURNS"
-        else:
-            num_segments = num_sectors
-            bins = np.linspace(0, max_dist, num_segments + 1)
-            unit_label = "TURNS"
-
+        # Segment lap path into micro-sectors
+        bins = np.linspace(0, max_dist, num_sectors + 1)
         t1_sec = tel_d1["Time"].dt.total_seconds().to_numpy()
         t2_sec = tel_d2["Time"].dt.total_seconds().to_numpy()
         d1 = tel_d1["Distance"].to_numpy()
@@ -647,8 +629,8 @@ def plot_micro_sector_dominance(session, p1_drv=None, p2_drv=None, num_sectors=2
 
         count_1 = int(np.sum(winners == driver_1))
         count_2 = int(np.sum(winners == driver_2))
-        pct_1 = round((count_1 / num_segments) * 100, 1)
-        pct_2 = round((count_2 / num_segments) * 100, 1)
+        pct_1 = round((count_1 / num_sectors) * 100, 1)
+        pct_2 = round((count_2 / num_sectors) * 100, 1)
 
         def _rotate_points(xy, deg):
             if deg == 0:
@@ -670,8 +652,8 @@ def plot_micro_sector_dominance(session, p1_drv=None, p2_drv=None, num_sectors=2
         # Track shadow/base line
         ax.plot(x_rot, y_rot, color="#0d1117", linewidth=7.5, zorder=2, alpha=0.95)
 
-        # Plot turn segments with seamless overlap
-        for i in range(num_segments):
+        # Plot micro-sectors with seamless overlap
+        for i in range(num_sectors):
             start_idx = np.searchsorted(d1, bins[i], side="left")
             end_idx = min(len(d1), np.searchsorted(d1, bins[i + 1], side="right") + 1)
             if start_idx >= end_idx:
@@ -716,14 +698,13 @@ def plot_micro_sector_dominance(session, p1_drv=None, p2_drv=None, num_sectors=2
             "count_2": count_2,
             "pct_1": pct_1,
             "pct_2": pct_2,
-            "total_turns": num_segments,
-            "total_sectors": num_segments,
-            "unit_label": unit_label,
+            "total_sectors": num_sectors,
+            "unit_label": "SECTORS",
             "d1_lap_time": str(laps_d1["LapTime"]).split()[-1][:8] if pd.notna(laps_d1.get("LapTime")) else "-",
             "d2_lap_time": str(laps_d2["LapTime"]).split()[-1][:8] if pd.notna(laps_d2.get("LapTime")) else "-",
         }
     except Exception:
-        st.info("Track map dominance overlay unavailable for this session.")
+        st.info("Micro-sector dominance overlay unavailable for this session.")
         return None
 
 
