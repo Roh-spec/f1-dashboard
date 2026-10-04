@@ -735,6 +735,88 @@ def inject_retro_css() -> None:
             background-color: var(--border-card) !important;
         }
 
+        /* Square motorsport tabs for Streamlit Pills to match Circuit Slate UI */
+        div[data-testid="stPills"],
+        div[data-testid="stButtonGroup"],
+        div[class*="stPills"],
+        div[class*="stButtonGroup"] {
+            gap: 6px !important;
+            margin-top: 6px !important;
+            margin-bottom: 14px !important;
+        }
+
+        div[data-testid="stPills"] button,
+        div[data-testid="stButtonGroup"] button,
+        button[data-testid="stBaseButton-pills"],
+        button[data-testid*="pills"],
+        button.e7msn5c10,
+        button.e7msn5c11,
+        div[class*="st-key-dash_session_pill"] button,
+        div[class*="st-key-qual_mode_pill"] button,
+        div[class*="st-key-dash_focus_drv"] button,
+        div[data-testid="stPills"] button *,
+        button[data-testid="stBaseButton-pills"] * {
+            border-radius: 0px !important;
+            -webkit-border-radius: 0px !important;
+            -moz-border-radius: 0px !important;
+        }
+
+        div[data-testid="stPills"] button,
+        div[data-testid="stButtonGroup"] button,
+        button[data-testid="stBaseButton-pills"],
+        button[data-testid*="pills"],
+        button.e7msn5c10,
+        button.e7msn5c11,
+        div[class*="st-key-dash_session_pill"] button,
+        div[class*="st-key-qual_mode_pill"] button,
+        div[class*="st-key-dash_focus_drv"] button {
+            font-family: 'Titillium Web', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.88rem !important;
+            letter-spacing: 0.08em !important;
+            text-transform: uppercase !important;
+            padding: 8px 18px !important;
+            background-color: #161b22 !important;
+            border: 1px solid #262c36 !important;
+            border-bottom: 3px solid transparent !important;
+            color: #8b949e !important;
+            transition: all 0.14s ease !important;
+            box-shadow: none !important;
+        }
+
+        div[data-testid="stPills"] button:hover,
+        button[data-testid="stBaseButton-pills"]:hover,
+        button.e7msn5c10:hover,
+        div[class*="st-key-dash_session_pill"] button:hover {
+            color: #f0f3f6 !important;
+            background-color: #1c212a !important;
+            border-color: #374151 !important;
+            border-bottom: 3px solid rgba(225, 6, 0, 0.45) !important;
+            border-radius: 0px !important;
+        }
+
+        div[data-testid="stPills"] button[aria-selected="true"],
+        div[data-testid="stPills"] button[aria-pressed="true"],
+        div[data-testid="stPills"] button[data-active="true"],
+        div[data-testid="stPills"] button[class*="active"],
+        button[data-testid="stBaseButton-pills"][aria-selected="true"],
+        button[data-testid="stBaseButton-pills"][aria-pressed="true"],
+        button.e7msn5c11,
+        button[class*="e7msn5c11"],
+        div[class*="st-key-dash_session_pill"] button[aria-selected="true"],
+        div[class*="st-key-dash_session_pill"] button[aria-pressed="true"],
+        div[class*="st-key-qual_mode_pill"] button[aria-selected="true"],
+        div[class*="st-key-qual_mode_pill"] button[aria-pressed="true"] {
+            background-color: rgba(225, 6, 0, 0.12) !important;
+            border: 1px solid #e10600 !important;
+            border-bottom: 3px solid #e10600 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0px !important;
+            box-shadow: 0 0 10px rgba(225, 6, 0, 0.18) !important;
+        }
+
+
         div[data-baseweb="tab-panel"] {
             padding-top: 6px !important;
         }

@@ -5,11 +5,13 @@ from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 from fastf1.exceptions import DataNotLoadedError
 
-from ui import render_standings_bar_card
+from ui import inject_retro_css, render_standings_bar_card
 from fps import render_fp_sessions
 from qualifying import render_qualifying_session
 from races import render_race_session
 import sessions
+
+inject_retro_css()
 
 get_event_sessions = sessions.get_event_sessions
 get_driver_standings = sessions.get_driver_standings
@@ -40,10 +42,27 @@ def render_event_snapshot(event, event_sessions) -> None:
 
     with st.container(border=True, key="dialog_event_snapshot"):
         st.markdown("<p class='section-kicker'>Race Briefing</p>", unsafe_allow_html=True)
-        st.markdown(
-            f"<div class='section-ribbon'><span>SESSION ARCHIVE</span><span>{session_count} AVAILABLE</span><span>{len(practice_sessions)} PRACTICE</span><span>{len(result_sessions)} RESULTS</span></div>",
-            unsafe_allow_html=True,
-        )
+        practice_count = sum(1 for name in event_sessions if name.startswith("Practice"))
+        sq_count = sum(1 for name in event_sessions if name in {"Sprint Qualifying", "Sprint Shootout"})
+        sprint_count = sum(1 for name in event_sessions if name == "Sprint")
+        qual_count = sum(1 for name in event_sessions if name == "Qualifying")
+        race_count = sum(1 for name in event_sessions if name == "Race")
+
+        breakdown_spans = ["<span>SESSION ARCHIVE :</span>"]
+        if practice_count:
+            breakdown_spans.append(f"<span>{practice_count} PRACTICE</span>")
+        if sq_count:
+            breakdown_spans.append(f"<span>{sq_count} SPRINT QUALIFYING</span>")
+        if sprint_count:
+            breakdown_spans.append(f"<span>{sprint_count} SPRINT</span>")
+        if qual_count:
+            breakdown_spans.append(f"<span>{qual_count} QUALIFYING</span>")
+        if race_count:
+            breakdown_spans.append(f"<span>{race_count} RACE</span>")
+
+        ribbon_html = f"<div class='section-ribbon'>{''.join(breakdown_spans)}</div>"
+        st.markdown(ribbon_html, unsafe_allow_html=True)
+
         season_val = str(event["EventDate"].year)
         round_val = f"Round {event.get('RoundNumber', '')}"
         circuit_val = str(event.get("EventName", ""))
@@ -485,12 +504,19 @@ def render_qualifying_vs_race_pace_overlay(year, race_name, *args, **kwargs) -> 
             st.warning("No drivers found in qualifying top 3.")
             return
 
-        tabs = st.tabs(drivers)
-        for i, drv in enumerate(drivers):
-            with tabs[i]:
-                _, col, _ = st.columns([1, 6, 1])
-                with col:
-                    plot_driver_telemetry_comparison(drv, q_session, r_session, "Qualifying", "Race", compact=True)
+        selected_drv = st.pills(
+            "Select Driver",
+            drivers,
+            default=drivers[0],
+            key=f"q_vs_r_drv_pill_{year}_{race_name}",
+            label_visibility="collapsed",
+        )
+        if not selected_drv:
+            selected_drv = drivers[0]
+
+        _, col, _ = st.columns([1, 6, 1])
+        with col:
+            plot_driver_telemetry_comparison(selected_drv, q_session, r_session, "Qualifying", "Race", compact=True)
 
 
 def _split_event_sessions(event):
@@ -588,24 +614,38 @@ def render_session_tabs(selected_year, selected_race, event, event_sessions) -> 
     tab_titles.extend(["Qualifying", "Race"])
     tab_keys.extend(["qualifying", "race"])
 
-    tabs = st.tabs(tab_titles)
+    key_map = dict(zip(tab_titles, tab_keys))
+    default_session = "Race" if "Race" in tab_titles else tab_titles[-1]
 
-    for i, item in enumerate(tab_keys):
-        with tabs[i]:
-            if item == "practice":
-                round_num = int(event["RoundNumber"]) if event is not None and "RoundNumber" in event else None
-                if practice_sessions:
-                    render_fp_sessions(selected_year, selected_race, practice_sessions, round_num=round_num)
-                else:
-                    st.info("No practice session data available for this event.")
-            elif isinstance(item, tuple) and item[0] == "sprint_qualifying":
-                render_qualifying_session(selected_year, selected_race, item[1])
-            elif isinstance(item, tuple) and item[0] == "sprint_race":
-                render_race_session(selected_year, selected_race, item[1])
-            elif item == "qualifying":
-                render_qualifying_session(selected_year, selected_race, "Qualifying")
-            elif item == "race":
-                render_race_session(selected_year, selected_race, "Race")
+    col_pills, _ = st.columns([3, 1])
+    with col_pills:
+        active_tab = st.pills(
+            "Weekend Session",
+            tab_titles,
+            default=default_session,
+            key=f"dash_session_pill_{selected_year}_{selected_race}",
+            label_visibility="collapsed",
+        )
+
+    if not active_tab or active_tab not in key_map:
+        active_tab = default_session
+
+    item = key_map[active_tab]
+    if item == "practice":
+        round_num = int(event["RoundNumber"]) if event is not None and "RoundNumber" in event else None
+        if practice_sessions:
+            render_fp_sessions(selected_year, selected_race, practice_sessions, round_num=round_num)
+        else:
+            st.info("No practice session data available for this event.")
+    elif isinstance(item, tuple) and item[0] == "sprint_qualifying":
+        render_qualifying_session(selected_year, selected_race, item[1])
+    elif isinstance(item, tuple) and item[0] == "sprint_race":
+        render_race_session(selected_year, selected_race, item[1])
+    elif item == "qualifying":
+        render_qualifying_session(selected_year, selected_race, "Qualifying")
+    elif item == "race":
+        render_race_session(selected_year, selected_race, "Race")
+
 
 
 def render_telemetry_section(selected_year, selected_race, event) -> None:

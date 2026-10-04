@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 
 from charts import (
+    get_tyre_strategy_matrix,
     plot_driver_positions,
     plot_lap_times,
     plot_top_2_telemetry,
+    plot_tyre_degradation_curves,
     plot_tyre_strategy_timeline,
 )
 from ui import anime_loading_box, render_top_podium_card
@@ -149,6 +151,24 @@ def render_incident_timeline_box(session):
             st.info("No race-control incidents detected for this session.")
 
 
+def render_tyre_intelligence(session):
+    """Renders pit window strategy matrix."""
+    matrix_df = get_tyre_strategy_matrix(session)
+    if matrix_df is not None and not matrix_df.empty:
+        st.markdown("<br><h3>TYRE INTELLIGENCE & PIT WINDOW MATRIX</h3>", unsafe_allow_html=True)
+        st.markdown("<p class='session-kicker'>Compound wear rates and strategic stint degradation derived from green-flag racing laps.</p>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div style="background: #161b22; border: 1px solid #262c36; border-left: 3px solid #f5a623; padding: 10px 14px; margin-bottom: 10px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #f5a623; font-weight: 700; letter-spacing: 0.08em;">STRATEGY INTELLIGENCE</span>
+                <p style="color: #c9d1d9; font-size: 0.85rem; margin: 3px 0 0 0;">Observed degradation accounts for fuel burnoff (~0.055 s/lap car weight reduction). Stint windows indicate target pit-stop delta windows before significant thermal degradation.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.dataframe(matrix_df.set_index("Compound"), use_container_width=True)
+
+
 def render_race_session(year, race_name, session_name):
     label = SESSION_LABELS.get(session_name, session_name)
 
@@ -185,15 +205,24 @@ def render_race_session(year, race_name, session_name):
         st.markdown("<h3>Race Graphs</h3>", unsafe_allow_html=True)
         row_1_col_1, row_1_col_2 = st.columns(2)
         with row_1_col_1:
-            plot_top_2_telemetry(session, compact=True)
-        with row_1_col_2:
             plot_lap_times(session, compact=True)
+        with row_1_col_2:
+            plot_driver_positions(session, compact=True)
 
         row_2_col_1, row_2_col_2 = st.columns(2)
         with row_2_col_1:
-            plot_driver_positions(session, compact=True)
-        with row_2_col_2:
             plot_tyre_strategy_timeline(session, compact=True)
-            
+        with row_2_col_2:
+            plot_tyre_degradation_curves(session, compact=True)
+
+        render_tyre_intelligence(session)
+
+        s_clean = str(getattr(session, "name", "race")).lower().replace(" ", "_")
+        with st.expander("⚡ Load Head-to-Head 10Hz Lap Telemetry (P1 vs P2)", expanded=False):
+            if st.button("Render 10Hz Telemetry Waveform", key=f"btn_race_telem_{s_clean}"):
+                plot_top_2_telemetry(session)
+
         render_race_incidents(session, results)
         render_incident_timeline_box(session)
+
+
