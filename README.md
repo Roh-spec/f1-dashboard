@@ -1,24 +1,13 @@
-# F1 Race Control & Telemetry Archive
+# 🏎️ F1 Race Control & Telemetry Archive
 
 A broadcast-grade Formula 1 telemetry and race analysis workstation built with **Python**, **Streamlit**, and **FastF1**. Designed around an authentic pit-wall and FIA timing-tower visual language, the dashboard delivers high-fidelity circuit intelligence, lap-by-lap pace traces, corner-by-corner braking telemetry, tyre degradation modeling, incident window timelines, and dynamic official team styling.
 
 ---
 
-## Key Capabilities & Features
+## ⚡ Key Capabilities & Features
 
 ### 1. Broadcast-Grade Visual Design & Typography
-- **Circuit Slate Theme**: High-contrast engineering palette featuring cool dark slate (`#0d1117`), dark telemetry panels (`#161b22`), sharp borders (`#262c36`), and **F1 Racing Red (`#e10600`)** primary accents with safety car amber (`#f5a623`) highlights.
-- **Dynamic Official F1 Team Colors**: Driver and constructor components dynamically adapt to their official team branding:
-  - **McLaren**: Papaya Orange (`#ff8000`)
-  - **Red Bull Racing**: Dark Blue (`#1e41ff`)
-  - **Mercedes-AMG**: Mercedes Cyan / Silver (`#00a0dd`)
-  - **Ferrari**: Scuderia Red (`#e80020`)
-  - **Aston Martin**: British Racing Green (`#229971`)
-  - **Sauber / Kick Sauber**: Neon Green (`#52e252`)
-  - **RB / Racing Bulls**: Electric Blue (`#6692ff`)
-  - **Williams**: Williams Blue (`#64c4ff`)
-  - **Alpine**: Alpine Blue (`#0093cc`)
-  - **Haas**: Haas Red (`#e6002b`)
+- **Circuit Slate Theme**: High-contrast engineering palette (`#0d1117` / `#161b22`) with dynamic official F1 team livery color accents and safety car amber (`#f5a623`) highlights.
 - **Technical Typography**: **Titillium Web** for broadcast headings and badges, **JetBrains Mono** for telemetry channels, sector tags, timing deltas, and timestamps, and **Inter** for readable narrative descriptions.
 - **Square Motorsport Tabs**: Session and telemetry pill selectors are custom-styled with sharp 0px corners, high-contrast borders, and red active underlines matching professional telemetry software.
 - **Sticky Timing-Tower Navigation**: Flush top navigation bar with sharp-angled branding and a sector-line active indicator.
@@ -70,21 +59,46 @@ A broadcast-grade Formula 1 telemetry and race analysis workstation built with *
 - **Driver Lineup**: Active driver pairings styled with team color indicators.
 
 #### 🏆 Racers' Wiki (`pages/5_Racers_Wiki.py`)
-- **Championship Tiers Database**: Categorized by World Drivers' Championships won:
-  - **7x World Champions**: Lewis Hamilton, Michael Schumacher.
-  - **5x World Champions**: Juan Manuel Fangio.
-  - **4x World Champions**: Alain Prost, Sebastian Vettel, Max Verstappen.
-  - **3x World Champions**: Ayrton Senna, Niki Lauda, Jackie Stewart, Jack Brabham, Nelson Piquet.
-  - **2x World Champions**: Fernando Alonso, Mika Häkkinen, Jim Clark, Emerson Fittipaldi, Alberto Ascari.
-  - **1x World Champions**: Comprehensive roster including **Lando Norris (2025 WDC Champion)**, Kimi Räikkönen, Jenson Button, Nico Rosberg, Damon Hill, Nigel Mansell, James Hunt, and more.
-- **Non-Champion Drivers Database**:
-  - **Active Paddock Drivers Prioritized**: Current on-grid drivers (Charles Leclerc, Oscar Piastri, George Russell, Carlos Sainz, Sergio Pérez, Pierre Gasly, etc.) are highlighted at the top of the non-champions catalog.
-  - **Historical Race Winners & Legends**: Stirling Moss, Ronnie Peterson, David Coulthard, Daniel Ricciardo, and other iconic contenders.
-- **Comprehensive Driver Metrics**: Total Grand Prix starts, race wins, pole positions, podiums, career points, win percentage, podium rate, debut Grand Prix, first win, honors, and Wikipedia career biographies.
+- **Championship Tiers**: Complete historical database categorized by World Drivers' Championship titles won (7x down to 1x, featuring Lando Norris as 2025 WDC).
+- **Active Grid Prioritization**: Current on-grid paddock drivers are highlighted at the top of the non-champions catalog, followed by all-time race winners and historical legends.
+- **Comprehensive Driver Metrics**: Grand Prix starts, wins, poles, podiums, career points, win/podium percentages, debut race, first win, honors, and Wikipedia biographical dossiers.
 
 ---
 
-## Project Structure
+## 🔬 Data Pipeline & Analytical Modeling
+
+The application implements an end-to-end data processing pipeline combining raw telemetry, official timing, and statistical derivation:
+
+```
+ Selection (Season, Round, Event)
+        │
+        ▼
+ Acquire   FastF1 · Jolpica/Ergast · OpenF1 · Wikipedia · RSS        (sessions.py)
+        │
+        ▼
+ Clean     pick_quicklaps · pick_fastest · clean-lap masks · outlier trim
+        │
+        ▼
+ Derive    Distance-aligned delta time · micro-sector winners · corner metrics ·
+           median race pace · tyre degradation slope · thermal cliff lap
+        │
+        ▼
+ Encode    Position, livery colors, incident shading, telemetry traces → Matplotlib / Streamlit
+```
+
+### 1. Distance-Aligned Telemetry Engine
+- **Spatial Alignment**: Rather than comparing telemetry over raw time (which drifts after the first braking point), telemetry channels (Speed, Throttle, Brake, Gear) are aligned over **track distance in meters** using `fastf1.utils.delta_time`.
+- **Micro-Sector Dominance**: The circuit is sliced into 25 equidistant segments. Driver split times are calculated via linear interpolation along distance arrays, color-coding each zone with the faster driver's team livery.
+- **Corner Metrics Extraction**: Corner apexes are detected via track distance offsets (`circuit_info.corners`), isolating braking onset thresholds, minimum cornering speeds, and throttle application points.
+
+### 2. Tyre Degradation & Pit Window Modeling
+- **Outlier Filtering**: In-laps, out-laps, Safety Car periods, and anomalous laps are pruned using `pick_quicklaps` and a $1.15 \times \text{median}$ threshold.
+- **Fuel-Burnoff Compensation**: Linear regression models compound wear ($s / \text{lap}$) while compensating for car lightening (~$0.055 \text{ s/lap}$ fuel burn adjustment).
+- **Thermal Cliff Detection**: Evaluates consecutive lap times against predicted pace to detect the strategic tyre cliff (lap where performance drops $> 0.7\text{s}$ beyond expected degradation), establishing target pit windows.
+
+---
+
+## 📁 Project Structure
 
 ```
 F1-dashboard/
@@ -111,7 +125,7 @@ F1-dashboard/
 
 ---
 
-## Installation & Setup
+## 🚀 Installation & Quick Start
 
 ### 1. Prerequisites
 - **Python 3.10+** (Tested on Python 3.10, 3.11, 3.12, 3.14)
@@ -147,7 +161,7 @@ Open `http://localhost:8501` in your browser.
 
 ---
 
-## Data Caching & Performance Architecture
+## 💾 Data Caching & Performance Architecture
 
 To maintain broadcast-grade performance and avoid API rate limits, the application implements a multi-tiered caching architecture:
 
@@ -158,40 +172,53 @@ To maintain broadcast-grade performance and avoid API rate limits, the applicati
 
 ---
 
-## Tech Stack
+## ⚠️ Current Limitations & Known Considerations
+
+- **First-Load Latency**: Loading an un-cached historical session requires downloading multi-megabyte telemetry files from FastF1/FIA data servers. Once cached locally, subsequent loads are instantaneous.
+- **Historical Telemetry Gaps**: Sessions prior to 2018 may have incomplete high-frequency GPS or channel telemetry (e.g. brake pedal traces, gear sensor streams, or tyre compound tags) depending on FIA timing feed availability for that era.
+- **OpenF1 Weather Availability**: Environmental weather sensors (track temp, air temp, wind speed) and granular race control incident timestamps are sourced from OpenF1 and are primarily available for 2023+ events.
+- **Upstream Ergast / Jolpica Delays**: Official championship standings may experience a short latency window immediately following the conclusion of a live Grand Prix until upstream databases finalize classifications.
+- **Historical Constructor Lineage**: Historical team rebrands and mergers (e.g., Jordan → Midland → Spyker → Force India → Racing Point → Aston Martin) are mapped based on primary lineage; older title attributions reflect official constructor designations of each era.
+
+---
+
+## 🗺️ Engineering Roadmap & Planned Follow-Ups
+
+The following milestones and architectural improvements are actively planned for upcoming releases:
+
+### 🎮 Telemetry & Interactive Visualizations
+- [ ] **Part 2: Cockpit HUD & Steering Wheel Telemetry Playback**
+  - Interactive virtual steering wheel display replicating modern F1 digital LCD screens (McLaren/Ferrari/Mercedes layouts).
+  - Synchronized lap scrubber with dynamic RPM LED shift lights, gear shifts, speed, and real-time throttle/brake input bars.
+  - DRS flap deployment indicator and ERS deployment mode status.
+- [ ] **Part 3: Radar Telemetry & Head-to-Head Delta Analyzer**
+  - Multi-attribute polar radar plots comparing driving characteristics (high-speed cornering load, mechanical grip, braking threshold, exit traction, and top speed).
+  - Continuous micro-second delta time traces along track distance showing exact corner gains and straight-line losses.
+- [ ] **Part 4: Global Command Palette & Keyboard Shortcuts**
+  - Keyboard-first command palette (`Ctrl+K` / `Cmd+K`) for instantaneous jumping to any season, Grand Prix, driver dossier, or telemetry view.
+  - Fuzzy-search for drivers and constructors with direct deep-linking.
+- [ ] **Tyre Stint Wear Circuit Map Overlay**
+  - Interactive compound wear simulation directly overlaid onto the circuit map showing predicted thermal degradation zones and pit window crossover deltas.
+
+### ☁️ Cloud Infrastructure & Backend Scaling (From Architecture Plan)
+- [ ] **Hugging Face Cloud Storage Cache Bootstrap**:
+  - Integrate remote cache archive storage using Hugging Face Storage Buckets / Datasets to preload yearly FastF1 cache bundles (`2021.tar.zst`, `2022.tar.zst`, etc.).
+  - Reduce Streamlit Cloud cold start latency by bootstrapping only selected season archives into `/tmp/fastf1_cache`.
+- [ ] **Offline Cache Warmer (`scripts/warm_cache.py`)**:
+  - Independent background script to pre-fetch, compress, and sync newly completed Grand Prix telemetry to cloud storage outside user-facing Streamlit runs.
+- [ ] **Data Layer Modularization**:
+  - Decouple `sessions.py` into dedicated API client modules (`fastf1_loader.py`, `ergast_client.py`, `openf1_client.py`, `wikipedia_client.py`, `news_client.py`).
+  - Move global CSS out of `ui.py` into `assets/styles.css` for enhanced maintainability.
+- [ ] **Dynamic Calendar Handling**:
+  - Add calendar status awareness for in-progress seasons: automatically detect completed vs. upcoming Grand Prix rounds and set intelligent default selections to the most recently completed race.
+
+---
+
+## 🛠️ Tech Stack
 
 - **Frontend & App Framework**: [Streamlit](https://streamlit.io/)
 - **Telemetry Engine**: [FastF1](https://docs.fastf1.dev/)
 - **Data Engineering**: [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
 - **Visualization Engine**: [Matplotlib](https://matplotlib.org/), [Altair](https://altair-viz.github.io/)
-- **Design & Styling**: Custom Vanilla CSS, Google Fonts (*Titillium Web*, *JetBrains Mono*, *Inter*)
+- **Design & Styling**: Custom Vanilla CSS (Circuit Slate Design System), Google Fonts (*Titillium Web*, *JetBrains Mono*, *Inter*)
 - **Data Sources**: FastF1 Live Timing, Ergast / Jolpica API, OpenF1, Wikipedia API, RSS Paddock Feeds
-
----
-
-## Engineering Roadmap & Planned Follow-Ups
-
-The following features are actively planned for upcoming releases:
-
-### 🏎️ Part 2: Cockpit HUD & Steering Wheel Telemetry Playback
-- **Virtual Steering Wheel Display**: Interactive digital display replicating modern F1 steering wheel LCD screens (McLaren/Ferrari/Mercedes layouts).
-- **Synchronized Lap Telemetry Playback**: Scrubbable lap playback simulator displaying:
-  - Dynamic RPM LED shift light array.
-  - Real-time gear display and speed readout.
-  - Throttle and brake pedal input gauges (percentage bars).
-  - DRS flap deployment indicator and ERS deployment mode.
-
-### 📡 Part 3: Radar Telemetry & Head-to-Head Delta Analyzer
-- **Multi-Attribute Polar Radar Charts**: Quantitative driver performance profiles comparing:
-  - High-speed cornering load.
-  - Low-speed mechanical grip / rotation.
-  - Braking efficiency & late-braking tolerance.
-  - Traction on corner exit.
-  - Straight-line top speed with DRS.
-- **Dynamic Delta Analyzer**: Micro-second delta time delta traces along the track distance showing exactly where lap time was gained or lost.
-
-### ⌨️ Part 4: Global Command Palette & Quick Navigation
-- **Keyboard-First Navigation (`Ctrl+K` / `Cmd+K`)**: Modal overlay allowing instantaneous navigation:
-  - Jump directly to any Grand Prix (e.g. `2024 Monza`, `2021 Abu Dhabi`).
-  - Search drivers and constructors for direct dossier inspection.
-  - Toggle telemetry modes and compare sessions with single keystrokes.
