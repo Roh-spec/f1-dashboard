@@ -98,6 +98,21 @@ The application implements an end-to-end data processing pipeline combining raw 
 
 ---
 
+## 🏛️ System Architecture
+
+[![Architecture diagram of roh-spec/f1-dashboard](https://gitdiagram.com/roh-spec/f1-dashboard/diagram.png)](https://gitdiagram.com/roh-spec/f1-dashboard?utm_source=readme&utm_medium=picture)
+
+> 💡 *Click the diagram above for an interactive, zoomable view on [GitDiagram](https://gitdiagram.com/roh-spec/f1-dashboard).*
+
+The workstation decouples multi-tiered data acquisition, telemetry computation, and presentation across specialized layers:
+- **Navigation & Selection**: `app.py` orchestrates routing to sub-pages while preserving session state across season and round switches.
+- **Data Acquisition Layer**: `sessions.py` interfaces with FastF1 telemetry archives, Jolpica/Ergast timing tables, OpenF1 live environmental feeds, and Wikipedia/RSS media streams.
+- **Race Analysis Engine**: `pages/2_Dashboard.py` coordinates specialized modules (`fps.py`, `qualifying.py`, `races.py`, `track_analysis.py`, and `charts.py`) for deep-dive telemetry and tyre degradation modeling.
+- **Historical Encyclopedias**: Independent dossier views for driver comparisons, team histories, and champion archives (`3_Driver_Compare.py`, `4_Team_Wiki.py`, `5_Racers_Wiki.py`).
+- **Presentation Layer**: `ui.py` enforces the Circuit Slate engineering design system, custom badges, metric cards, and sharp 0px motorsport tab styling.
+
+---
+
 ## 📁 Project Structure
 
 ```
