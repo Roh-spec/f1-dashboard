@@ -46,13 +46,13 @@ A broadcast-grade Formula 1 telemetry and race analysis workstation built with *
   - **Grand Prix Race Results**: Official race classification, finishing status, points earned, and gap to leader.
 - **Qualifying Telemetry & Race Intelligence**:
   - **🗺️ Track Map Dominance**: Lap path segmented into 25 micro-sectors color-coded by the faster driver between P1 and P2 with seamless overlap, corner annotations, and a high-contrast sector dominance stat bar (`[N] SECTORS (X%)`).
-  - **🎯 Corner Telemetry Inspector**: Turn-by-turn breakdown analyzing braking onset distance, apex minimum speed, gear selection, and throttle pickup points comparing Driver 1 vs Driver 2, supported by corner advantage metric cards.
-  - **⚡ Waveform Telemetry**: Synchronized 10Hz comparative telemetry traces for Speed (km/h), Throttle (%), Brake (on/off), and Gear across the entire qualifying lap.
+  - **🎯 Corner Telemetry Inspector**: Turn-by-turn comparison of Driver 1 vs Driver 2 covering apex minimum speed, gear at the apex, and braking onset distance (first brake application within 250 m before the apex). The advantage in each corner goes to the driver with the higher apex speed, summarized in corner advantage metric cards.
+  - **⚡ Waveform Telemetry**: Comparative traces for Speed (km/h), Throttle (%), Brake (on/off), Gear, and cumulative time delta, plotted against track distance across the lap.
 - **Grand Prix Tyre Intelligence & Pit Windows**:
   - **Tyre Strategy Timeline**: Driver-by-driver stint progression with compound badges (Soft, Medium, Hard, Intermediate, Wet).
-  - **Tyre Degradation Curves**: Polynomial degradation modeling with fuel-burnoff compensation (~0.055 s/lap car weight reduction).
-  - **Pit Window Strategy Matrix**: Observed degradation rates, fuel-adjusted wear rates, and thermal cliff onset lap indicators derived from clean green-flag racing laps.
-- **Qualifying vs. Race Pace Overlays**: Top 3 qualifiers compared across single-lap qualifying attack pace vs. race pace stint medians.
+  - **Tyre Degradation Curves**: Per-compound linear least-squares fits of lap time against tyre age on clean green-flag laps pooled across the field, reported with a fuel-burnoff adjustment (+0.055 s/lap added back to the observed slope).
+  - **Pit Window Strategy Matrix**: Observed degradation rates, fuel-adjusted wear rates, and thermal cliff onset lap indicators derived from clean green-flag racing laps.**
+- **Qualifying vs. Race Overlays**: For each of the top 3 qualifiers, the fastest qualifying lap and fastest race lap are overlaid against track distance (speed, throttle, brake, gear) with a cumulative delta panel.
 - **World Championship Standings**: Live updated World Drivers' Championship (WDC) and World Constructors' Championship (WCC) standings for the selected round with team-colored progress bars.
 
 #### Driver Comparison (`pages/3_Driver_Compare.py`)
@@ -94,14 +94,13 @@ The application implements an end-to-end data processing pipeline combining raw 
 ```
 
 ### 1. Distance-Aligned Telemetry Engine
-- **Spatial Alignment**: Rather than comparing telemetry over raw time (which drifts after the first braking point), telemetry channels (Speed, Throttle, Brake, Gear) are aligned over **track distance in meters** using `fastf1.utils.delta_time`.
+- **Spatial Alignment**: Rather than comparing telemetry over raw time (which drifts after the first braking point), the waveform traces (Speed, Throttle, Brake, Gear) are plotted against **track distance in meters**. The cumulative time delta comes from `fastf1.utils.delta_time`, which FastF1 documents as deprecated and approximate, so treat it as a guide to *where* time is gained or lost rather than an exact figure.
 - **Micro-Sector Dominance**: The circuit is sliced into 25 equidistant segments. Driver split times are calculated via linear interpolation along distance arrays, color-coding each zone with the faster driver's team livery.
-- **Corner Metrics Extraction**: Corner apexes are detected via track distance offsets (`circuit_info.corners`), isolating braking onset thresholds, minimum cornering speeds, and throttle application points.
-
+- **Corner Metrics Extraction**: Corner positions are read from `circuit_info.corners`. Around each apex, the code extracts the minimum speed (window from 70 m before to 50 m after the apex), the gear at that point, and the first brake application (up to 250 m before the apex).
 ### 2. Tyre Degradation & Pit Window Modeling
-- **Outlier Filtering**: In-laps, out-laps, Safety Car periods, and anomalous laps are pruned using `pick_quicklaps` and a $1.15 \times \text{median}$ threshold.
-- **Fuel-Burnoff Compensation**: Linear regression models compound wear ($s / \text{lap}$) while compensating for car lightening (~$0.055 \text{ s/lap}$ fuel burn adjustment).
-- **Thermal Cliff Detection**: Evaluates consecutive lap times against predicted pace to detect the strategic tyre cliff (lap where performance drops $> 0.7\text{s}$ beyond expected degradation), establishing target pit windows.
+- **Outlier Filtering**: For tyre analysis, a lap is kept only if the track was clear for the whole lap (`TrackStatus == "1"`), there was no pit entry or exit, and the lap time is valid. Per compound, laps more than 3.5 s from that compound's median are then discarded. The lap-picking helpers used for qualifying and pace comparisons rely on FastF1's `pick_quicklaps`, with a $1.15 \times \text{median}$ rule as a fallback.
+- **Fuel-Burnoff Compensation**: A least-squares line (seconds per lap of tyre age) is fitted per compound to the pooled clean laps. Because fuel burn-off makes the car faster and masks tyre wear, a fixed $0.055 \text{ s/lap}$ is added to the observed slope to give the fuel-adjusted wear rate. The constant is a generic approximation, not fitted per race.
+- **Thermal Cliff Detection**: Over the last seven tyre ages observed for a compound (never starting below age 10), the median lap time at each age is compared with the linear fit. The first age that is more than $0.7\text{ s}$ slower than predicted is flagged as the cliff onset (if none is, the maximum observed tyre age is used). The indicative stint window runs from `cliff − 5` to `cliff + 1` laps, bounded below at lap 8 and above at the maximum observed age.
 
 ---
 
@@ -202,6 +201,8 @@ To maintain broadcast-grade performance and avoid API rate limits, the applicati
 - **OpenF1 Weather Availability**: Environmental weather sensors (track temp, air temp, wind speed) and granular race control incident timestamps are sourced from OpenF1 and are primarily available for 2023+ events.
 - **Upstream Ergast / Jolpica Delays**: Official championship standings may experience a short latency window immediately following the conclusion of a live Grand Prix until upstream databases finalize classifications.
 - **Historical Constructor Lineage**: Historical team rebrands and mergers (e.g., Jordan → Midland → Spyker → Force India → Racing Point → Aston Martin) are mapped based on primary lineage; older title attributions reflect official constructor designations of each era.
+- **Approximate Delta Time**: The time-delta panels use `fastf1.utils.delta_time`, which FastF1 documents as deprecated and not very accurate. Use it to see where time is won or lost, and verify exact gaps against official sector times.
+- **Field-Wide Tyre Estimates**: Degradation slopes and cliff laps are fitted on laps pooled across all drivers and stints of a compound. They describe the field's typical behaviour, not any single car, and the fuel correction is a fixed approximation.
 
 ---
 
