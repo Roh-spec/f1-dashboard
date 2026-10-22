@@ -1,10 +1,17 @@
-# 🏎️ F1 Race Control & Telemetry Archive
+# F1 Race Control & Telemetry Archive
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![FastF1](https://img.shields.io/badge/telemetry-FastF1-e10600)](https://docs.fastf1.dev/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/Roh-spec/f1-dashboard)](https://github.com/Roh-spec/f1-dashboard/commits/main)
+[![Stars](https://img.shields.io/github/stars/Roh-spec/f1-dashboard?style=social)](https://github.com/Roh-spec/f1-dashboard)
 
 A broadcast-grade Formula 1 telemetry and race analysis workstation built with **Python**, **Streamlit**, and **FastF1**. Designed around an authentic pit-wall and FIA timing-tower visual language, the dashboard delivers high-fidelity circuit intelligence, lap-by-lap pace traces, corner-by-corner braking telemetry, tyre degradation modeling, incident window timelines, and dynamic official team styling.
 
 ---
 
-## ⚡ Key Capabilities & Features
+## Key Capabilities & Features
 
 ### 1. Broadcast-Grade Visual Design & Typography
 - **Circuit Slate Theme**: High-contrast engineering palette (`#0d1117` / `#161b22`) with dynamic official F1 team livery color accents and safety car amber (`#f5a623`) highlights.
@@ -16,12 +23,12 @@ A broadcast-grade Formula 1 telemetry and race analysis workstation built with *
 
 ### 2. Multi-Page Workstation Architecture
 
-#### 🏁 Race Select (`pages/1_Race_Select.py`)
+#### Race Select (`pages/1_Race_Select.py`)
 - **Championship Season Archive**: Fast selection across modern Formula 1 seasons (2000–present) with instant round and venue identification.
 - **Live Paddock News Wire**: Real-time RSS aggregation from premier motorsport outlets (*Motorsport.com*, *RaceFans*, *The Race*) with source tags, relative publication timestamps, and direct article routing.
 - **One-Click Session Preloading**: Loads FastF1 session data and telemetry into global session state for instant analysis across sub-pages.
 
-#### 📊 Race Analysis & Telemetry (`pages/2_Dashboard.py`)
+#### Race Analysis & Telemetry (`pages/2_Dashboard.py`)
 - **Race Briefing Ribbon**: Dynamic weekend session archive status ribbon:
   - *Standard Grand Prix*: `SESSION ARCHIVE : 3 PRACTICE 1 QUALIFYING 1 RACE`
   - *Sprint Weekend*: Dynamically formatted (e.g. `SESSION ARCHIVE : 1 PRACTICE 1 SPRINT QUALIFYING 1 SPRINT 1 QUALIFYING 1 RACE`).
@@ -48,24 +55,24 @@ A broadcast-grade Formula 1 telemetry and race analysis workstation built with *
 - **Qualifying vs. Race Pace Overlays**: Top 3 qualifiers compared across single-lap qualifying attack pace vs. race pace stint medians.
 - **World Championship Standings**: Live updated World Drivers' Championship (WDC) and World Constructors' Championship (WCC) standings for the selected round with team-colored progress bars.
 
-#### ⚔️ Driver Comparison (`pages/3_Driver_Compare.py`)
+#### Driver Comparison (`pages/3_Driver_Compare.py`)
 - **Head-to-Head Driver Analysis**: Compare any two drivers active in the selected season.
 - **Career Dossiers**: Grand Prix starts, podium finishes, race wins, career points, and best/worst season milestones.
 - **Championship Points Progression**: Round-by-round cumulative points chart with dual driver-colored traces.
 
-#### 🏎️ Team Wiki (`pages/4_Team_Wiki.py`)
+#### Team Wiki (`pages/4_Team_Wiki.py`)
 - **Constructor Dossiers**: Season-scoped team profiles with official team livery accents.
 - **Technical & Historical Milestones**: Team principal, base location, debut Grand Prix, total race starts, WDC and WCC title totals, and constructor lineage.
 - **Driver Lineup**: Active driver pairings styled with team color indicators.
 
-#### 🏆 Racers' Wiki (`pages/5_Racers_Wiki.py`)
+#### Racers' Wiki (`pages/5_Racers_Wiki.py`)
 - **Championship Tiers**: Complete historical database categorized by World Drivers' Championship titles won (7x down to 1x, featuring Lando Norris as 2025 WDC).
 - **Active Grid Prioritization**: Current on-grid paddock drivers are highlighted at the top of the non-champions catalog, followed by all-time race winners and historical legends.
 - **Comprehensive Driver Metrics**: Grand Prix starts, wins, poles, podiums, career points, win/podium percentages, debut race, first win, honors, and Wikipedia biographical dossiers.
 
 ---
 
-## 🔬 Data Pipeline & Analytical Modeling
+## Data Pipeline & Analytical Modeling
 
 The application implements an end-to-end data processing pipeline combining raw telemetry, official timing, and statistical derivation:
 
@@ -98,7 +105,7 @@ The application implements an end-to-end data processing pipeline combining raw 
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 [![Architecture diagram of roh-spec/f1-dashboard](https://gitdiagram.com/roh-spec/f1-dashboard/diagram.png)](https://gitdiagram.com/roh-spec/f1-dashboard?utm_source=readme&utm_medium=picture)
 
@@ -113,10 +120,10 @@ The workstation decouples multi-tiered data acquisition, telemetry computation, 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-F1-dashboard/
+f1-dashboard/
 ├── app.py                      # Application entrypoint, page routing, and top navigation
 ├── ui.py                       # Circuit Slate design system, CSS styling, components & cards
 ├── sessions.py                 # FastF1 data loader, Ergast/Jolpica client, Wikipedia & RSS layer
@@ -135,12 +142,13 @@ F1-dashboard/
 │   └── config.toml             # Streamlit server and theme configuration
 ├── circuits/                   # Circuit track layout reference maps
 ├── requirements.txt            # Python package dependencies
+├── LICENSE                     # MIT License
 └── README.md                   # Project documentation & engineering roadmap
 ```
 
 ---
 
-## 🚀 Installation & Quick Start
+## Installation & Quick Start
 
 ### 1. Prerequisites
 - **Python 3.10+** (Tested on Python 3.10, 3.11, 3.12, 3.14)
@@ -148,8 +156,8 @@ F1-dashboard/
 
 ### 2. Clone the Repository
 ```bash
-git clone https://github.com/your-username/F1-dashboard.git
-cd F1-dashboard
+git clone https://github.com/Roh-spec/f1-dashboard.git
+cd f1-dashboard
 ```
 
 ### 3. Set Up a Virtual Environment (Recommended)
@@ -176,7 +184,7 @@ Open `http://localhost:8501` in your browser.
 
 ---
 
-## 💾 Data Caching & Performance Architecture
+## Data Caching & Performance Architecture
 
 To maintain broadcast-grade performance and avoid API rate limits, the application implements a multi-tiered caching architecture:
 
@@ -187,7 +195,7 @@ To maintain broadcast-grade performance and avoid API rate limits, the applicati
 
 ---
 
-## ⚠️ Current Limitations & Known Considerations
+## Current Limitations & Known Considerations
 
 - **First-Load Latency**: Loading an un-cached historical session requires downloading multi-megabyte telemetry files from FastF1/FIA data servers. Once cached locally, subsequent loads are instantaneous.
 - **Historical Telemetry Gaps**: Sessions prior to 2018 may have incomplete high-frequency GPS or channel telemetry (e.g. brake pedal traces, gear sensor streams, or tyre compound tags) depending on FIA timing feed availability for that era.
@@ -197,11 +205,11 @@ To maintain broadcast-grade performance and avoid API rate limits, the applicati
 
 ---
 
-## 🗺️ Engineering Roadmap & Planned Follow-Ups
+## Engineering Roadmap & Planned Follow-Ups
 
 The following milestones and architectural improvements are actively planned for upcoming releases:
 
-### 🎮 Telemetry & Interactive Visualizations
+### Telemetry & Interactive Visualizations
 - [ ] **Part 2: Cockpit HUD & Steering Wheel Telemetry Playback**
   - Interactive virtual steering wheel display replicating modern F1 digital LCD screens (McLaren/Ferrari/Mercedes layouts).
   - Synchronized lap scrubber with dynamic RPM LED shift lights, gear shifts, speed, and real-time throttle/brake input bars.
@@ -215,7 +223,7 @@ The following milestones and architectural improvements are actively planned for
 - [ ] **Tyre Stint Wear Circuit Map Overlay**
   - Interactive compound wear simulation directly overlaid onto the circuit map showing predicted thermal degradation zones and pit window crossover deltas.
 
-### ☁️ Cloud Infrastructure & Backend Scaling (From Architecture Plan)
+### Cloud Infrastructure & Backend Scaling (From Architecture Plan)
 - [ ] **Hugging Face Cloud Storage Cache Bootstrap**:
   - Integrate remote cache archive storage using Hugging Face Storage Buckets / Datasets to preload yearly FastF1 cache bundles (`2021.tar.zst`, `2022.tar.zst`, etc.).
   - Reduce Streamlit Cloud cold start latency by bootstrapping only selected season archives into `/tmp/fastf1_cache`.
@@ -229,7 +237,7 @@ The following milestones and architectural improvements are actively planned for
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend & App Framework**: [Streamlit](https://streamlit.io/)
 - **Telemetry Engine**: [FastF1](https://docs.fastf1.dev/)
@@ -237,3 +245,52 @@ The following milestones and architectural improvements are actively planned for
 - **Visualization Engine**: [Matplotlib](https://matplotlib.org/), [Altair](https://altair-viz.github.io/)
 - **Design & Styling**: Custom Vanilla CSS (Circuit Slate Design System), Google Fonts (*Titillium Web*, *JetBrains Mono*, *Inter*)
 - **Data Sources**: FastF1 Live Timing, Ergast / Jolpica API, OpenF1, Wikipedia API, RSS Paddock Feeds
+
+---
+
+## Contributing
+
+Contributions, bug reports, and ideas are welcome.
+
+1. Fork the repo and create a branch: `git checkout -b feature/my-change`
+2. Make your changes and run the app locally (`streamlit run app.py`) to confirm nothing breaks on the pages you touched.
+3. Commit with a clear message and open a Pull Request describing what changed and why.
+
+Found a bug? [Open an issue](https://github.com/Roh-spec/f1-dashboard/issues) with the season/round you were viewing, what you expected, and the traceback if there is one. Items from the roadmap above are good places to start.
+
+---
+
+##  Data Sources & Attribution
+
+This project does not host any data of its own. Everything is fetched at runtime from third-party services, each governed by its own terms:
+
+| Source | Used for |
+|---|---|
+| [FastF1](https://github.com/theOehrly/Fast-F1) | Session timing, lap data, and car telemetry |
+| [Jolpica-F1](https://github.com/jolpica/jolpica-f1) (Ergast-compatible API) | Schedules, results, and championship standings |
+| [OpenF1](https://openf1.org/) | Weather, stints, and race control messages |
+| [Wikipedia](https://www.wikipedia.org/) | Circuit, driver, and team summaries (text is [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) |
+| Motorsport.com, RaceFans, The Race | Headlines and links in the news wire (content belongs to the respective publishers) |
+
+---
+
+## Disclaimer
+
+This is an independent, fan-made, non-commercial project. It is **not** affiliated with, endorsed by, or associated with Formula 1, the FIA, any Formula 1 team, or any driver. *F1*, *Formula 1*, *FIA Formula One World Championship*, and related marks are trademarks of their respective owners. Team names and livery colors are used for identification and visualization only.
+
+---
+
+## License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for the full text.
+
+The MIT License covers the source code in this repository. It does not extend to third-party data, trademarks, Wikipedia text, or the circuit layout images in `circuits/`, which remain the property of their respective owners.
+
+---
+
+## Acknowledgements
+
+- [FastF1](https://docs.fastf1.dev/) for making F1 telemetry accessible to everyone
+- [Jolpica](https://github.com/jolpica/jolpica-f1) and the original Ergast project for decades of historical race data
+- [OpenF1](https://openf1.org/) for open session and weather data
+- [Streamlit](https://streamlit.io/) for the app framework
